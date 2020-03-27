@@ -60,11 +60,12 @@ if __name__ == "__main__":
     cpus = ['CPU1']
 
     # All in benchmarks from VRG micro-benchmark suite
-    micro_bm_list = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm',
-    'CS1','CS3','DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5',
-    'MD' 'MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst'
-    'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
+    # micro_bm_list = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm',
+    # 'CS1','CS3','DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5',
+    # 'MD' 'MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst'
+    # 'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
 
+    micro_bm_list = ['CCa']
     parser = argparse.ArgumentParser()
     parser.add_argument('--cpu', choices = ['CPU1'], default='CPU1',help="CPU type: must be one from this list [CPU1]")
     args  = parser.parse_args()
@@ -73,7 +74,7 @@ if __name__ == "__main__":
     path = 'microbench'
   
     # Register the each benchmark used for test as an artifact
-    for bm in control_bm_list:
+    for bm in micro_bm_list:
         bm = Artifact.registerArtifact(
         command = '''
         cd microbench/{};
