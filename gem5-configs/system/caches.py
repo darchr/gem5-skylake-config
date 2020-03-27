@@ -35,7 +35,7 @@ line options from each individual class.
 """
 
 import m5
-from m5.objects import Cache, L2XBar, StridePrefetcher, SubSystem
+from m5.objects import Cache, L2XBar, StridePrefetcher, SubSystem, CoherentXBar
 from m5.params import AddrRange, AllMemory, MemorySize
 from m5.util.convert import toMemorySize
 
@@ -60,9 +60,9 @@ class L1Cache(PrefetchCache):
     """Simple L1 Cache with default values"""
 
     assoc = 8
-    tag_latency = 1
-    data_latency = 1
-    response_latency = 1
+    tag_latency = 4
+    data_latency = 4
+    response_latency = 2
     mshrs = 16
     tgts_per_mshr = 20
     writeback_clean = True
@@ -83,7 +83,6 @@ class L1Cache(PrefetchCache):
 class L1ICache(L1Cache):
     """Simple L1 instruction cache with default values"""
 
-    # Set the default size
     size = '32kB'
 
     SimpleOpts.add_option('--l1i_size',
@@ -102,7 +101,6 @@ class L1ICache(L1Cache):
 class L1DCache(L1Cache):
     """Simple L1 data cache with default values"""
 
-    # Set the default size
     size = '32kB'
 
     SimpleOpts.add_option('--l1d_size',
@@ -148,15 +146,15 @@ class MMUCache(Cache):
 class L2Cache(PrefetchCache):
     """Simple L2 Cache with default values"""
 
-    # Default parameters
-    size = '256kB'
-    assoc = 16
-    tag_latency = 10
-    data_latency = 10
-    response_latency = 1
-    mshrs = 20
+    size = '1024kB'
+    assoc = 4
+    tag_latency = 14
+    data_latency = 14
+    response_latency = 7 # configured to half of data latency
+    mshrs = 32
     tgts_per_mshr = 12
-    writeback_clean = True
+    write_buffers = 32 # need to change this
+    writeback_clean = False
 
     SimpleOpts.add_option('--l2_size',
                           help="L2 cache size. Default: %s" % size)
@@ -182,13 +180,14 @@ class L3Cache(Cache):
     SimpleOpts.add_option('--l3_size', default = '4MB',
                           help="L3 cache size. Default: 4MB")
 
-    # Default parameters
-    assoc = 32
-    tag_latency = 40
-    data_latency = 40
-    response_latency = 10
-    mshrs = 256
+    size = '2MB' # this has to be adjusted to crystal
+    assoc = 16
+    tag_latency = 44
+    data_latency = 44
+    response_latency = 21 # configured to half of data latency
+    mshrs = 32
     tgts_per_mshr = 12
+    write_buffers = 64 # need to change this
     clusivity = 'mostly_excl'
 
     def __init__(self, opts):
@@ -200,3 +199,24 @@ class L3Cache(Cache):
 
     def connectMemSideBus(self, bus):
         self.mem_side = bus.slave
+
+class L3XBar(CoherentXBar):
+    # 256-bit crossbar by default
+    width = 32
+
+    # Assume that most of this is covered by the cache latencies, with
+    # no more than a single pipeline stage for any packet.
+    frontend_latency = 1
+    forward_latency = 0
+    response_latency = 1
+    snoop_response_latency = 1
+
+    # Use a snoop-filter by default, and set the latency to zero as
+    # the lookup is assumed to overlap with the frontend latency of
+    # the crossbar
+    snoop_filter = SnoopFilter(lookup_latency = 0)
+
+    # This specialisation of the coherent crossbar is to be considered
+    # the point of unification, it connects the dcache and the icache
+    # to the first level of unified cache.
+    point_of_unification = True
