@@ -1,0 +1,21 @@
+# Python byte code
+*.pyc
+
+# Python virtual environment
+gem5art-env
+
+# gem5 repos
+gem5
+
+# gem5 results
+results
+
+# packer binaries and the disk images
+disk-image/packer
+disk-image/packer_*_linux_amd64.zip
+disk-image/boot-exit/boot-exit-image/boot-exit
+disk-image/packer_cache
+
+# Linux repos
+linux-stable/
+linux-4.19.83/
