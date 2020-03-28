@@ -2,15 +2,11 @@ import m5
 from m5.objects import *
 import argparse
 from system import MySystem
-from core import *
+from system.core import *
 
 parser = argparse.ArgumentParser()
-parser.add_argument('cpu', choices = valid_configs.keys())
 parser.add_argument('binary', type = str, help = "Path to binary to run")
 args = parser.parse_args()
-
-class TestSystem(BaseTestSystem):
-    _CPUModel = args.cpu
 
 system = MySystem()
 system.setTestBinary(args.binary)

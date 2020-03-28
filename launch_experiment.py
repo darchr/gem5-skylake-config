@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#This is a job launch script to run basic microbenchmark experiment for all cpu.
+#This is a job launch script to run microbenchmark experiments.
 
 import os
 import sys
@@ -45,31 +45,27 @@ gem5_binary = Artifact.registerArtifact(
     documentation = 'default gem5 binary for x86'
 )
 
-# run_scripts = Artifact.registerArtifact(
-#     command = '',
-#     typ = 'git repo',
-#     name = 'gem5-configs',
-#     path =  'gem5-configs',
-#     cwd = './',
-#     documentation = 'gem5 run scripts made specifically for micro-benchmarks benchmarks'
-# )
+run_scripts = Artifact.registerArtifact(
+    command = '',
+    typ = 'git repo',
+    name = 'gem5-configs',
+    path =  'gem5-configs',
+    cwd = './',
+    documentation = 'gem5 run scripts configured for skylake micro-architecture and micro-benchmarks benchmarks'
+)
 
 if __name__ == "__main__":
 
-    # Types of CPUs cupported
-    cpus = ['CPU1']
-
     # All in benchmarks from VRG micro-benchmark suite
-    # micro_bm_list = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm',
-    # 'CS1','CS3','DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5',
-    # 'MD' 'MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst'
-    # 'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
+    micro_bm_list = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm',
+    'CS1','CS3','DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5',
+    'MD' 'MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst'
+    'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
 
-    micro_bm_list = ['CCa']
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cpu', choices = ['CPU1'], default='CPU1',help="CPU type: must be one from this list [CPU1]")
+    # parser.add_argument('--cpu', choices = ['CPU1'], default='CPU1',help="CPU type: must be one from this list [CPU1]")
     args  = parser.parse_args()
-    cpu_opt = args.cpu
+    # cpu_opt = args.cpu
 
     path = 'microbench'
   
@@ -89,12 +85,12 @@ if __name__ == "__main__":
         )
 
     for bm in micro_bm_list:
-        for cpu in cpus:
-            run = gem5Run.createSERun('skylake_{}_micro-benchmarks_run_{}'.format(cpu,bm),
-                'gem5/build/X86/gem5.opt',
-                'gem5-configs/run.py',
-                'results/microbenchmark-experiments/test/{}/{}'.format(cpu,bm),
-                gem5_binary, gem5_repo, experiments_repo,
-                cpu, os.path.join(path,bm,'bench.X86'))
-            run.run()
+        run = gem5Run.createSERun('skylake_micro-benchmarks_run_{}'.format(bm),
+            'gem5/build/X86/gem5.opt',
+            'gem5-configs/run.py',
+            'results/microbenchmark-experiments/test/{}'.format(bm),
+            gem5_binary, gem5_repo, experiments_repo,
+            os.path.join(path,bm,'bench.X86'))
+        run.run()
+
 

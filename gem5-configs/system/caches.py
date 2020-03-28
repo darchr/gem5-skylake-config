@@ -27,48 +27,21 @@
 #
 # Authors: Jason Lowe-Power
 
-""" Caches with options for a simple gem5 configuration script
-
-This file contains L1 I/D and L2 caches to be used in the simple
-gem5 configuration script. It uses the SimpleOpts wrapper to set up command
-line options from each individual class.
-"""
-
 import m5
-from m5.objects import Cache, L2XBar, StridePrefetcher, SubSystem, CoherentXBar
-from m5.params import AddrRange, AllMemory, MemorySize
-from m5.util.convert import toMemorySize
+from m5.objects import *
 
-import SimpleOpts
-
-# Some specific options for caches
-# For all options see src/mem/cache/BaseCache.py
-
-class PrefetchCache(Cache):
-
-    SimpleOpts.add_option("--no_prefetchers", default=False,
-                          action="store_true",
-                          help="Enable prefectchers on the caches")
-
-    def __init__(self, options):
-        super(PrefetchCache, self).__init__()
-        if not options or options.no_prefetchers:
-            return
-        self.prefetcher = StridePrefetcher()
-
-class L1Cache(PrefetchCache):
-    """Simple L1 Cache with default values"""
+class L1Cache(Cache):
+    """Simple L1 Cache"""
 
     assoc = 8
-    tag_latency = 4
+    tag_latency = 2
     data_latency = 4
     response_latency = 2
     mshrs = 16
     tgts_per_mshr = 20
-    writeback_clean = True
 
     def __init__(self, options=None):
-        super(L1Cache, self).__init__(options)
+        super(L1Cache, self).__init__()
         pass
 
     def connectBus(self, bus):
@@ -81,13 +54,15 @@ class L1Cache(PrefetchCache):
         raise NotImplementedError
 
 class L1ICache(L1Cache):
-    """Simple L1 instruction cache with default values"""
+    """Simple L1 instruction cache"""
 
+    # Set the default size
     size = '32kB'
 
-    SimpleOpts.add_option('--l1i_size',
-                        help="L1 instruction cache size. Default: %s" % size)
-
+    tag_latency = 2
+    data_latency = 4
+    response_latency = 2
+ 
     def __init__(self, opts=None):
         super(L1ICache, self).__init__(opts)
         if not opts or not opts.l1i_size:
@@ -99,13 +74,11 @@ class L1ICache(L1Cache):
         self.cpu_side = cpu.icache_port
 
 class L1DCache(L1Cache):
-    """Simple L1 data cache with default values"""
+    """Simple L1 data cache"""
 
+    # Set the default size
     size = '32kB'
-
-    SimpleOpts.add_option('--l1d_size',
-                          help="L1 data cache size. Default: %s" % size)
-
+    
     def __init__(self, opts=None):
         super(L1DCache, self).__init__(opts)
         if not opts or not opts.l1d_size:
@@ -116,51 +89,21 @@ class L1DCache(L1Cache):
         """Connect this cache's port to a CPU dcache port"""
         self.cpu_side = cpu.dcache_port
 
-class MMUCache(Cache):
+class L2Cache(Cache):
+    """Simple L2 Cache"""
+
     # Default parameters
-    size = '8kB'
-    assoc = 4
-    tag_latency = 1
-    data_latency = 1
-    response_latency = 1
-    mshrs = 20
-    tgts_per_mshr = 12
-    writeback_clean = True
-
-    def __init__(self):
-        super(MMUCache, self).__init__()
-
-    def connectCPU(self, cpu):
-        """Connect the CPU itb and dtb to the cache
-           Note: This creates a new crossbar
-        """
-        self.mmubus = L2XBar()
-        self.cpu_side = self.mmubus.master
-        for tlb in [cpu.itb, cpu.dtb]:
-            self.mmubus.slave = tlb.walker.port
-
-    def connectBus(self, bus):
-        """Connect this cache to a memory-side bus"""
-        self.mem_side = bus.slave
-
-class L2Cache(PrefetchCache):
-    """Simple L2 Cache with default values"""
-
     size = '1024kB'
     assoc = 4
-    tag_latency = 14
+    tag_latency = 7 # configured to half of data latency
     data_latency = 14
     response_latency = 7 # configured to half of data latency
     mshrs = 32
     tgts_per_mshr = 12
     write_buffers = 32 # need to change this
-    writeback_clean = False
-
-    SimpleOpts.add_option('--l2_size',
-                          help="L2 cache size. Default: %s" % size)
 
     def __init__(self, opts=None):
-        super(L2Cache, self).__init__(opts)
+        super(L2Cache, self).__init__()
         if not opts or not opts.l2_size:
             return
         self.size = opts.l2_size
@@ -172,27 +115,23 @@ class L2Cache(PrefetchCache):
         self.mem_side = bus.slave
 
 class L3Cache(Cache):
-    """Simple L3 Cache bank with default values
-       This assumes that the L3 is made up of multiple banks. This cannot
-       be used as a standalone L3 cache.
-    """
+    """Simple L2 Cache with default values"""
 
-    SimpleOpts.add_option('--l3_size', default = '4MB',
-                          help="L3 cache size. Default: 4MB")
-
+    # Default parameters
     size = '2MB' # this has to be adjusted to crystal
     assoc = 16
-    tag_latency = 44
+    tag_latency = 21 # configured to half of data latency
     data_latency = 44
     response_latency = 21 # configured to half of data latency
     mshrs = 32
     tgts_per_mshr = 12
     write_buffers = 64 # need to change this
-    clusivity = 'mostly_excl'
 
-    def __init__(self, opts):
+    def __init__(self, opts=None):
         super(L3Cache, self).__init__()
-        self.size = (opts.l3_size)
+        if not opts or not opts.l3_size:
+            return
+        self.size = opts.l3_size
 
     def connectCPUSideBus(self, bus):
         self.cpu_side = bus.master
