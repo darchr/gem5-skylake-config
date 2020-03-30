@@ -91,7 +91,7 @@ class Ideal_FUPool(FUPool):
                SIMD_Unit(), WritePort(), RdWrPort(), IprPort() ]
 
 
-class CPU1(DerivO3CPU):
+class BaseConfig(DerivO3CPU):
     ######################################
     # Front End
     ######################################
