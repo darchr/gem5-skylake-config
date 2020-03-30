@@ -19,7 +19,7 @@ class MySystem(System):
     self.clk_domain.voltage_domain = VoltageDomain()
 
     self.mem_mode = 'timing'
-    self.mem_ranges = [AddrRange('16384MB')] # Need to change this
+    self.mem_ranges = [AddrRange('16GB')] # Need to change this
 
     self.cpu = CPU1()
 
