@@ -34,7 +34,7 @@ class L1Cache(Cache):
     """Simple L1 Cache"""
 
     assoc = 8
-    tag_latency = 2
+    tag_latency = 4
     data_latency = 4
     response_latency = 2
     mshrs = 16
@@ -59,7 +59,7 @@ class L1ICache(L1Cache):
     # Set the default size
     size = '32kB'
 
-    tag_latency = 2
+    tag_latency = 4
     data_latency = 4
     response_latency = 2
  
@@ -95,7 +95,7 @@ class L2Cache(Cache):
     # Default parameters
     size = '1024kB'
     assoc = 4
-    tag_latency = 7 # configured to half of data latency
+    tag_latency = 14 # configured to half of data latency
     data_latency = 14
     response_latency = 7 # configured to half of data latency
     mshrs = 32
@@ -120,7 +120,7 @@ class L3Cache(Cache):
     # Default parameters
     size = '2MB' # this has to be adjusted to crystal
     assoc = 16
-    tag_latency = 21 # configured to half of data latency
+    tag_latency = 44 # configured to half of data latency
     data_latency = 44
     response_latency = 21 # configured to half of data latency
     mshrs = 32
