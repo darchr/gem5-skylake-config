@@ -127,11 +127,8 @@ class L3Cache(Cache):
     tgts_per_mshr = 12
     write_buffers = 64 # need to change this
 
-    def __init__(self, opts=None):
+    def __init__(self):
         super(L3Cache, self).__init__()
-        if not opts or not opts.l3_size:
-            return
-        self.size = opts.l3_size
 
     def connectCPUSideBus(self, bus):
         self.cpu_side = bus.master
