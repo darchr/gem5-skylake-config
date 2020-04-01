@@ -21,7 +21,7 @@ class MySystem(System):
     self.mem_mode = 'timing'
     self.mem_ranges = [AddrRange('16GB')] # Need to change this
 
-    self.cpu = CPU1()
+    self.cpu = BaseConfig()
 
     # Create an L1 instruction and data cache
     self.cpu.icache = L1ICache()
