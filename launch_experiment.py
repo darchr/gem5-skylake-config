@@ -1,132 +1,96 @@
 #!/usr/bin/env python3
 
-# This is a job launch script for boot tests
+#This is a job launch script to run microbenchmark experiments.
 
 import os
 import sys
+import argparse
 from uuid import UUID
 
 from gem5art.artifact.artifact import Artifact
 from gem5art.run import gem5Run
 from gem5art.tasks.tasks import run_gem5_instance
 
-packer = Artifact.registerArtifact(
-    command = '''wget https://releases.hashicorp.com/packer/1.4.3/packer_1.4.3_linux_amd64.zip;
-    unzip packer_1.4.3_linux_amd64.zip;
-    ''',
-    typ = 'binary',
-    name = 'packer',
-    path =  'disk-image/packer',
-    cwd = 'disk-image',
-    documentation = 'Program to build disk images. Downloaded sometime in August from hashicorp.'
-)
-
 experiments_repo = Artifact.registerArtifact(
-    command = 'git clone https://your-remote-add/boot_tests.git',
+    command = 'git clone https://github.com/darchr/gem5art-experiments.git',
     typ = 'git repo',
-    name = 'boot_tests',
+    name = 'gem5_skylake_config',
     path =  './',
     cwd = '../',
-    documentation = 'main experiments repo to run full system boot tests with gem5'
+    documentation = 'main experiments repo to test gem5 with micro-benchmarks'
 )
 
 gem5_repo = Artifact.registerArtifact(
-    command = 'git clone -b release-staging-v19.0.0.0 '
-              'https://gem5.googlesource.com/public/gem5/',
+    command = '''git clone https://gem5.googlesource.com/public/gem5;
+                 cd gem5;
+                 git cherry-pick 27dbffdb006c7bd12ad2489a2d346274fe646720;
+                 git cherry-pick ad65be829e7c6ffeaa143d292a7c4a5ba27c5c7c;
+                 wget https://github.com/darchr/gem5/commit/f0a358ee08aba1563c7b5277866095b4cbb7c36d.patch;
+                 git am f0a358ee08aba1563c7b5277866095b4cbb7c36d.patch --reject;
+    ''',
     typ = 'git repo',
     name = 'gem5',
     path =  'gem5/',
     cwd = './',
-    documentation = 'cloned gem5 19 release staging branch'
-)
-
-m5_binary = Artifact.registerArtifact(
-    command = 'make -f Makefile.x86',
-    typ = 'binary',
-    name = 'm5',
-    path =  'gem5/util/m5/m5',
-    cwd = 'gem5/util/m5',
-    inputs = [gem5_repo,],
-    documentation = 'm5 utility'
-)
-
-disk_image = Artifact.registerArtifact(
-    command = './packer build boot-exit/boot-exit.json',
-    typ = 'disk image',
-    name = 'boot-disk',
-    cwd = 'disk-image',
-    path = 'disk-image/boot-exit/boot-exit-image/boot-exit',
-    inputs = [packer, experiments_repo, m5_binary,],
-    documentation = 'Ubuntu with m5 binary installed and root auto login'
+    documentation = 'git repo with gem5 master branch, gem5 version - 19, cherry picks with BTB, branch direction patches and vector mem support'
 )
 
 gem5_binary = Artifact.registerArtifact(
-    command = '''cd gem5;
-    scons build/X86/gem5.opt -j8
-    ''',
+    command = 'scons build/X86/gem5.opt',
     typ = 'gem5 binary',
     name = 'gem5',
     cwd = 'gem5/',
     path =  'gem5/build/X86/gem5.opt',
     inputs = [gem5_repo,],
-    documentation = 'gem5 19 binary'
+    documentation = 'default gem5 binary for x86'
 )
 
-linux_repo = Artifact.registerArtifact(
-    command = '''git clone https://github.com/torvalds/linux.git;
-    mv linux linux-stable''',
+run_scripts = Artifact.registerArtifact(
+    command = '',
     typ = 'git repo',
-    name = 'linux-stable',
-    path =  'linux-stable/',
+    name = 'gem5-configs',
+    path =  'gem5-configs',
     cwd = './',
-    documentation = 'linux kernel source code repo from Sep 23rd'
+    documentation = 'gem5 run scripts configured for skylake micro-architecture and micro-benchmarks benchmarks'
 )
-
-linuxes = ['5.2.3', '4.19.83', '4.14.134', '4.9.186', '4.4.186']
-linux_binaries = {
-    version: Artifact.registerArtifact(
-                name = f'vmlinux-{version}',
-                typ = 'kernel',
-                path = f'linux-stable/vmlinux-{version}',
-                cwd = 'linux-stable/',
-                command = f'''git checkout v{version};
-                cp ../linux-configs/config.{version} .config;
-                make -j8;
-                cp vmlinux vmlinux-{version};
-                ''',
-                inputs = [experiments_repo, linux_repo,],
-                documentation = f"Kernel binary for {version} with simple "
-                                 "config file",
-            )
-    for version in linuxes
-}
 
 if __name__ == "__main__":
-    boot_types = ['init', 'systemd']
-    num_cpus = ['1', '2', '4', '8']
-    cpu_types = ['kvm', 'atomic', 'simple', 'o3']
-    mem_types = ['classic', 'ruby']
 
-    for linux in linuxes:
-        for boot_type in boot_types:
-            for cpu in cpu_types:
-                for num_cpu in num_cpus:
-                    for mem in mem_types:
-                        run = gem5Run.createFSRun(
-                            name='boot experiment gem5 19',
-                            gem5_binary='gem5/build/X86/gem5.opt',
-                            run_script='configs-boot-tests/run_exit.py',
-                            outdir='results/run_exit/vmlinux-{}/boot-exit/{}/{}/{}/{}'.
-                                format(linux, cpu, mem, num_cpu, boot_type),
-                            gem5_artifact=gem5_binary,
-                            gem5_git_artifact=gem5_repo,
-                            run_script_git_artifact=experiments_repo, 
-                            linux_binary= os.path.join('linux-stable', 'vmlinux'+'-'+linux),
-                            disk_image='disk-image/boot-exit/boot-exit-image/boot-exit',
-                            linux_binary_artifact=linux_binaries[linux],
-                            disk_image_artifact=disk_image,
-                            params = (cpu, mem, num_cpu, boot_type),
-                            timeout = 6*60*60 # (6 hours)
-                            )
-                        run_gem5_instance.apply_async((run,))
+    # All in benchmarks from VRG micro-benchmark suite
+    micro_bm_list = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm',
+    'CS1','CS3','DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5',
+    'MD' 'MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst'
+    'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
+
+    parser = argparse.ArgumentParser()
+    # parser.add_argument('--cpu', choices = ['CPU1'], default='CPU1',help="CPU type: must be one from this list [CPU1]")
+    args  = parser.parse_args()
+    # cpu_opt = args.cpu
+
+    path = 'microbench'
+  
+    # Register the each benchmark used for test as an artifact
+    for bm in micro_bm_list:
+        bm = Artifact.registerArtifact(
+        command = '''
+        cd microbench/{};
+        make X86;
+        '''.format(bm),
+        typ = 'binary',
+        name = bm,
+        cwd = 'microbench/{}'.format(bm),
+        path =  'microbench/{}/bench.X86'.format(bm),
+        inputs = [experiments_repo,],
+        documentation = 'microbenchmark ({}) binary for X86  ISA'.format(bm)
+        )
+
+    for bm in micro_bm_list:
+        run = gem5Run.createSERun('skylake_micro-benchmarks_run_{}'.format(bm),
+            'gem5/build/X86/gem5.opt',
+            'gem5-configs/run.py',
+            'results/microbenchmark-experiments/test/{}'.format(bm),
+            gem5_binary, gem5_repo, experiments_repo,
+            os.path.join(path,bm,'bench.X86'))
+        run.run()
+
 
