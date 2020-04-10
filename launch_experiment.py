@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     configs = ['UnCalib', 'Calib', 'Max']
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cpu', choices = ['UnCalib','Calib','Max','all'], default='all',help="CPU type: must be one from this list [CPU1]")
+    parser.add_argument('--cpu', choices = ['UnCalib','Calib','Max','all'], default='all',help="CPU type")
     args  = parser.parse_args()
 
     if (args.cpu == 'all'):
@@ -96,7 +96,7 @@ if __name__ == "__main__":
             run = gem5Run.createSERun('skylake_micro-benchmarks_run_{}_{}'.format(cpu,bm),
                 'gem5/build/X86/gem5.opt',
                 'gem5-configs/run.py',
-                'results/microbenchmark-experiments/testa/{}/{}'.format(cpu,bm),
+                'results/microbenchmark-experiments/{}/{}'.format(cpu,bm),
                 gem5_binary, gem5_repo, experiments_repo,
                 cpu, os.path.join(path,bm,'bench.X86'))
             run.run()
