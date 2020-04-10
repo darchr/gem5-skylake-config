@@ -5,10 +5,6 @@ from core import *
 from caches import *
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument('binary', type = str, help = "Path to binary to run")
-args = parser.parse_args()
-
 class MySystem(System):
 
   _CPUModel = BaseCPU
