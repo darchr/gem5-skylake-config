@@ -91,7 +91,7 @@ class Ideal_FUPool(FUPool):
                SIMD_Unit(), WritePort(), RdWrPort(), IprPort() ]
 
 
-class BaseConfig(DerivO3CPU):
+class UnCalibCPU(DerivO3CPU):
     """ Unoptimized configuration of skylake micro-architecture """
     ######################################
     # Front End
@@ -140,7 +140,7 @@ class BaseConfig(DerivO3CPU):
     numROBEntries = 224
 
 
-class CalibConfig(DerivO3CPU):
+class CalibCPU(DerivO3CPU):
     """ Optimized configuration of skylake micro-architecture """
     ######################################
     # Front End
@@ -179,6 +179,62 @@ class CalibConfig(DerivO3CPU):
     issueToExecuteDelay  = 1
     iewToRenameDelay = 1
     iewToCommitDelay = 4
+    commitToFetchDelay = 1
+    commitToIEWDelay = 1
+    commitToRenameDelay = 1
+
+    LQEntries = 72
+    SQEntries = 56
+    numPhysIntRegs = 180
+    numPhysFloatRegs = 168 # Need to change this
+    numROBEntries = 224
+
+class MaxCPU(DerivO3CPU):
+    """ Configuration with maximum pipeline widths and mininum delays """
+    ######################################
+    # Front End
+    ######################################
+    branchPred = LTAGE()
+
+    # Pipeline widths
+    fetchWidth = 8
+    decodeWidth = 8
+
+    # Pipeline delays
+    fetchToDecodeDelay = 1
+    decodeToRenameDelay = 1
+
+    fetchBufferSize = 16
+    fetchQueueSize = 64
+    numIQEntries = 64
+
+    ######################################
+    # Back End
+    ######################################
+
+    fuPool = Ideal_FUPool()
+    fuPool.FUList[0].count = 32
+    fuPool.FUList[1].count = 32
+    fuPool.FUList[2].count = 32
+    fuPool.FUList[3].count = 32
+    fuPool.FUList[4].count = 32
+    fuPool.FUList[5].count = 32
+    fuPool.FUList[6].count = 32
+    fuPool.FUList[7].count = 32
+
+    # Pipeline widths
+    renameWidth = 8
+    dispatchWidth = 8
+    issueWidth = 8
+    wbWidth = 8
+    commitWidth = 8
+    squashWidth = 8
+
+    # Pipeline delays
+    renameToIEWDelay = 1
+    issueToExecuteDelay  = 1
+    iewToRenameDelay = 1
+    iewToCommitDelay = 1
     commitToFetchDelay = 1
     commitToIEWDelay = 1
     commitToRenameDelay = 1

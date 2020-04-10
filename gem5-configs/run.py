@@ -4,11 +4,18 @@ import argparse
 from system import MySystem
 from system.core import *
 
+valid_configs = [UnCalibCPU, CalibCPU, MaxCPU]
+valid_configs = {cls.__name__[:-3]:cls for cls in valid_configs}
+
 parser = argparse.ArgumentParser()
 parser.add_argument('binary', type = str, help = "Path to binary to run")
+parser.add_argument('config', choices = valid_configs.keys())
 args = parser.parse_args()
 
-system = MySystem()
+class TestSystem(MySystem):
+    _CPUModel = valid_configs[args.config]
+
+system = TestSystem()
 system.setTestBinary(args.binary)
 root = Root(full_system = False, system = system)
 m5.instantiate()
