@@ -8,8 +8,8 @@ valid_configs = [UnCalibCPU, CalibCPU, MaxCPU]
 valid_configs = {cls.__name__[:-3]:cls for cls in valid_configs}
 
 parser = argparse.ArgumentParser()
-parser.add_argument('binary', type = str, help = "Path to binary to run")
 parser.add_argument('config', choices = valid_configs.keys())
+parser.add_argument('binary', type = str, help = "Path to binary to run")
 args = parser.parse_args()
 
 class TestSystem(MySystem):
