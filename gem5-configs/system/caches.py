@@ -34,9 +34,9 @@ class L1Cache(Cache):
     """Simple L1 Cache"""
 
     assoc = 8
-    tag_latency = 4
-    data_latency = 4
-    response_latency = 2
+    tag_latency = 1
+    data_latency = 1
+    response_latency = 1
     mshrs = 16
     tgts_per_mshr = 20
 
@@ -56,13 +56,12 @@ class L1Cache(Cache):
 class L1ICache(L1Cache):
     """Simple L1 instruction cache"""
 
-    # Set the default size
+    tag_latency = 1
+    data_latency = 1
+    response_latency = 1
+
     size = '32kB'
 
-    tag_latency = 4
-    data_latency = 4
-    response_latency = 2
- 
     def __init__(self, opts=None):
         super(L1ICache, self).__init__(opts)
         if not opts or not opts.l1i_size:
@@ -76,7 +75,10 @@ class L1ICache(L1Cache):
 class L1DCache(L1Cache):
     """Simple L1 data cache"""
 
-    # Set the default size
+    tag_latency = 2
+    data_latency = 4
+    response_latency = 2
+
     size = '32kB'
     
     def __init__(self, opts=None):
@@ -93,11 +95,11 @@ class L2Cache(Cache):
     """Simple L2 Cache"""
 
     # Default parameters
-    size = '1024kB'
-    assoc = 4
-    tag_latency = 14 # configured to half of data latency
-    data_latency = 14
-    response_latency = 7 # configured to half of data latency
+    size = '1MB'
+    assoc = 16
+    tag_latency = 6 # configured to half of data latency
+    data_latency = 12
+    response_latency = 6 # configured to half of data latency
     mshrs = 32
     tgts_per_mshr = 12
     write_buffers = 32 # need to change this
@@ -120,8 +122,8 @@ class L3Cache(Cache):
     # Default parameters
     size = '2MB' # this has to be adjusted to crystal
     assoc = 16
-    tag_latency = 44 # configured to half of data latency
-    data_latency = 44
+    tag_latency = 21 # configured to half of data latency
+    data_latency = 42
     response_latency = 21 # configured to half of data latency
     mshrs = 32
     tgts_per_mshr = 12

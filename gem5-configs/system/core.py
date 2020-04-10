@@ -13,7 +13,7 @@ class IntALU(FUDesc):
 
 class IntMult(FUDesc):
     opList = [ OpDesc(opClass='IntMult', opLat=4) ]
-    count = 2
+    count = 1
 
 class IntDiv(FUDesc):
     opList = [ OpDesc(opClass='IntDiv', opLat=20, pipelined=False) ]
@@ -98,11 +98,11 @@ class BaseConfig(DerivO3CPU):
     branchPred = LTAGE()
 
     # Pipeline widths
-    fetchWidth = 6
-    decodeWidth = 6
+    fetchWidth = 4
+    decodeWidth = 4
 
     # Pipeline delays
-    fetchToDecodeDelay = 5
+    fetchToDecodeDelay = 2
     decodeToRenameDelay = 3
 
     fetchBufferSize = 16
@@ -116,12 +116,12 @@ class BaseConfig(DerivO3CPU):
     fuPool = Ideal_FUPool()
 
     # Pipeline widths
-    renameWidth = 6
-    dispatchWidth = 6
-    issueWidth = 6
-    wbWidth = 6
-    commitWidth = 6
-    squashWidth = 6
+    renameWidth = 4
+    dispatchWidth = 4
+    issueWidth = 4
+    wbWidth = 4
+    commitWidth = 4
+    squashWidth = 4
 
     # Pipeline delays
     renameToIEWDelay = 4
