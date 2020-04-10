@@ -5,11 +5,9 @@ from core import *
 from caches import *
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument('binary', type = str, help = "Path to binary to run")
-args = parser.parse_args()
-
 class MySystem(System):
+
+  _CPUModel = BaseCPU
 
   def __init__(self):
     super(MySystem, self).__init__()
@@ -19,9 +17,9 @@ class MySystem(System):
     self.clk_domain.voltage_domain = VoltageDomain()
 
     self.mem_mode = 'timing'
-    self.mem_ranges = [AddrRange('16GB')] # Need to change this
+    self.mem_ranges = [AddrRange('2GB')] # Need to change this
 
-    self.cpu = BaseConfig()
+    self.cpu = self._CPUModel()
 
     # Create an L1 instruction and data cache
     self.cpu.icache = L1ICache()
@@ -53,7 +51,7 @@ class MySystem(System):
     self.l3cache.connectCPUSideBus(self.l3bus)
 
     # Create a memory bus
-    self.membus = SystemXBar()
+    self.membus = SystemXBar(width = 64)
 
     # Connect the L2 cache to the membus
     self.l3cache.connectMemSideBus(self.membus)
@@ -69,7 +67,7 @@ class MySystem(System):
     self.system_port = self.membus.slave
 
     # Create a DDR4 memory controller
-    self.mem_ctrl =  DDR4_2400_8x8()
+    self.mem_ctrl =  DDR4_2400_16x4()
     self.mem_ctrl.range = self.mem_ranges[0]
     self.mem_ctrl.port = self.membus.master
 
