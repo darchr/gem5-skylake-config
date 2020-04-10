@@ -199,8 +199,8 @@ class MaxCPU(DerivO3CPU):
     branchPred = LTAGE()
 
     # Pipeline widths
-    fetchWidth = 8
-    decodeWidth = 8
+    fetchWidth = 32
+    decodeWidth = 32
 
     # Pipeline delays
     fetchToDecodeDelay = 1
@@ -225,12 +225,12 @@ class MaxCPU(DerivO3CPU):
     fuPool.FUList[7].count = 32
 
     # Pipeline widths
-    renameWidth = 8
-    dispatchWidth = 8
-    issueWidth = 8
-    wbWidth = 8
-    commitWidth = 8
-    squashWidth = 8
+    renameWidth = 32
+    dispatchWidth = 32
+    issueWidth = 32
+    wbWidth = 32
+    commitWidth = 32
+    squashWidth = 32
 
     # Pipeline delays
     renameToIEWDelay = 1
