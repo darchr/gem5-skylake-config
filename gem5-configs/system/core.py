@@ -92,7 +92,8 @@ class Ideal_FUPool(FUPool):
 
 
 class UnCalibCPU(DerivO3CPU):
-    """ Unoptimized configuration of skylake micro-architecture """
+    """ Unoptimized configuration of skylake micro-architecture
+        not calibrated against the hardware """
     ######################################
     # Front End
     ######################################
@@ -141,7 +142,8 @@ class UnCalibCPU(DerivO3CPU):
 
 
 class CalibCPU(DerivO3CPU):
-    """ Optimized configuration of skylake micro-architecture """
+    """ Optimized configuration of skylake micro-architecture 
+        calibrated against the hardware"""
     ######################################
     # Front End
     ######################################
