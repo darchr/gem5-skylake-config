@@ -5,11 +5,9 @@ from core import *
 from caches import *
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument('binary', type = str, help = "Path to binary to run")
-args = parser.parse_args()
-
 class MySystem(System):
+
+  _CPUModel = BaseCPU
 
   def __init__(self):
     super(MySystem, self).__init__()
@@ -21,7 +19,7 @@ class MySystem(System):
     self.mem_mode = 'timing'
     self.mem_ranges = [AddrRange('2GB')] # Need to change this
 
-    self.cpu = BaseConfig()
+    self.cpu = self._CPUModel()
 
     # Create an L1 instruction and data cache
     self.cpu.icache = L1ICache()
