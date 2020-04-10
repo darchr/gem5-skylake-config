@@ -164,7 +164,7 @@ class CalibCPU(DerivO3CPU):
     ######################################
 
     fuPool = Ideal_FUPool()
-    fuPool.FUList[0].count = 5
+    fuPool.FUList[0].count = 6
 
     # Pipeline widths
     renameWidth = 7
