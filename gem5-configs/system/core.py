@@ -92,6 +92,7 @@ class Ideal_FUPool(FUPool):
 
 
 class BaseConfig(DerivO3CPU):
+    """ Unoptimized configuration of skylake micro-architecture """
     ######################################
     # Front End
     ######################################
@@ -122,6 +123,56 @@ class BaseConfig(DerivO3CPU):
     wbWidth = 4
     commitWidth = 4
     squashWidth = 4
+
+    # Pipeline delays
+    renameToIEWDelay = 4
+    issueToExecuteDelay  = 1
+    iewToRenameDelay = 1
+    iewToCommitDelay = 4
+    commitToFetchDelay = 1
+    commitToIEWDelay = 1
+    commitToRenameDelay = 1
+
+    LQEntries = 72
+    SQEntries = 56
+    numPhysIntRegs = 180
+    numPhysFloatRegs = 168 # Need to change this
+    numROBEntries = 224
+
+
+class CalibConfig(DerivO3CPU):
+    """ Optimized configuration of skylake micro-architecture """
+    ######################################
+    # Front End
+    ######################################
+    branchPred = LTAGE()
+
+    # Pipeline widths
+    fetchWidth = 7
+    decodeWidth = 7
+
+    # Pipeline delays
+    fetchToDecodeDelay = 2
+    decodeToRenameDelay = 3
+
+    fetchBufferSize = 16
+    fetchQueueSize = 64
+    numIQEntries = 64
+
+    ######################################
+    # Back End
+    ######################################
+
+    fuPool = Ideal_FUPool()
+    fuPool.FUList[0].count = 5
+
+    # Pipeline widths
+    renameWidth = 7
+    dispatchWidth = 7
+    issueWidth = 7
+    wbWidth = 7
+    commitWidth = 7
+    squashWidth = 7
 
     # Pipeline delays
     renameToIEWDelay = 4
