@@ -57,16 +57,23 @@ run_scripts = Artifact.registerArtifact(
 if __name__ == "__main__":
 
     # All in benchmarks from VRG micro-benchmark suite
-    micro_bm_list = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm',
-    'CS1','CS3','DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5',
-    'MD' 'MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst'
-    'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
+    # micro_bm_list = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm',
+    # 'CS1','CS3','DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5',
+    # 'MD' 'MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst'
+    # 'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
 
+    micro_bm_list = ['EI']
+
+    configs = ['UnCalib', 'Calib', 'Max']
     parser = argparse.ArgumentParser()
-    # parser.add_argument('--cpu', choices = ['CPU1'], default='CPU1',help="CPU type: must be one from this list [CPU1]")
+    parser.add_argument('--cpu', choices = ['UnCalib','Calib','Max','all'], default='all',help="CPU type: must be one from this list [CPU1]")
     args  = parser.parse_args()
-    # cpu_opt = args.cpu
 
+    if (args.cpu == 'all'):
+        cpus = configs
+    else:
+        cpus = [args.cpu]
+    
     path = 'microbench'
   
     # Register the each benchmark used for test as an artifact
@@ -84,13 +91,14 @@ if __name__ == "__main__":
         documentation = 'microbenchmark ({}) binary for X86  ISA'.format(bm)
         )
 
-    for bm in micro_bm_list:
-        run = gem5Run.createSERun('skylake_micro-benchmarks_run_{}'.format(bm),
-            'gem5/build/X86/gem5.opt',
-            'gem5-configs/run.py',
-            'results/microbenchmark-experiments/test/{}'.format(bm),
-            gem5_binary, gem5_repo, experiments_repo,
-            os.path.join(path,bm,'bench.X86'))
-        run.run()
+    for cpu in cpus:
+        for bm in micro_bm_list:
+            run = gem5Run.createSERun('skylake_micro-benchmarks_run_{}_{}'.format(cpu,bm),
+                'gem5/build/X86/gem5.opt',
+                'gem5-configs/run.py',
+                'results/microbenchmark-experiments/testa/{}/{}'.format(cpu,bm),
+                gem5_binary, gem5_repo, experiments_repo,
+                cpu, os.path.join(path,bm,'bench.X86'))
+            run.run()
 
 
