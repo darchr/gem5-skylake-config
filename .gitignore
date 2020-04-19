@@ -8,6 +8,7 @@ gem5art-env
 gem5
 
 # gem5 results
+stats
 results
 
 # packer binaries and the disk images
