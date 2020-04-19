@@ -94,7 +94,7 @@ if __name__ == "__main__":
             run = gem5Run.createSERun('skylake_micro-benchmarks_run_{}_{}'.format(cpu,bm),
                 'gem5/build/X86/gem5.opt',
                 'gem5-configs/run.py',
-                'results/microbenchmark-experiments/{}/{}'.format(cpu,bm),
+                'stats/microbenchmark-experiments/{}/{}'.format(cpu,bm),
                 gem5_binary, gem5_repo, experiments_repo,
                 cpu, os.path.join(path,bm,'bench.X86'))
             run.run()
