@@ -6,6 +6,16 @@ These are the CPU classes that configured in core.py
 * CalibCPU: considering the absence of certain features in gem5, for example, gem5 doesn't support micro-op fusion and micro-op cache, this configuration offsets those difficiencies by improving some other parameters.
 * MaxCPU: models a CPU with maximum pipeline widths, minimum pipeline and instruction latencies.
 
+### Difference between UnCalib and Calib configs
+`Note`: Memory system is not calibrated yet so, it is same for both
+|     Parameters     |        UnCalib        |        Calib          |
+|--------------------|-----------------------|-----------------------|
+| IntAlu             | count=4, latency=1    | count=7, latency=1    |
+| IntMult            | count=1, latency=4    | count=1, latency=2    |
+| SIMD_unit          | count=2, latency=same | count=2, latency=same |
+| SIMD_Mult          | count=2, latency=5    | count=2, latency=4    |
+| Pipeline width     | width=4, latency=Same | count=7, latency=Same | 
+
 #### Missing Features:
 There are few features that are not modeled in gem5. Therefore, some offsetting has to done in order match the hardware performance.
 
