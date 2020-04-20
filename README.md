@@ -21,8 +21,8 @@ We are using intel's PCM to measure the hardware counter values, this [repo](htt
 ### References:
 These are primary references for skylake micro-architecture.
 * [Intel® 64 and IA-32 Architectures Optimization Reference Manual](https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-optimization-manual.pdf)
-* [The microarchitecture of Intel and AMD CPUs](https://en.wikichip.org/wiki/intel/microarchitectures/skylake_(client))
-* [Skylake (client) - Microarchitectures - Intel](https://www.agner.org/optimize/microarchitecture.pdf)
+* [The microarchitecture of Intel and AMD CPUs](https://www.agner.org/optimize/microarchitecture.pdf)
+* [Skylake (client) - Microarchitectures - Intel](https://en.wikichip.org/wiki/intel/microarchitectures/skylake_(client))
 
 These are for configuring a micro-architecture in gem5
 * [gem5 haswell config](https://github.com/ayaz91/gem5Valid_Haswell)
