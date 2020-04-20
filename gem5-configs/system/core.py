@@ -1,3 +1,7 @@
+################################################################
+# This is a configuration file for front and back end of the cpu
+################################################################
+
 import m5
 from m5.objects import *
 
@@ -75,7 +79,6 @@ class FPMem(FUDesc):
 class Ideal_FUPool(FUPool):
     FUList = [ IntALU(), IntMult(), DivUnit(), SIMD_Unit(), SIMD_MUL(), SIMD_Misc(), FPMem() ]
 
-
 class UnCalibCPU(DerivO3CPU):
     """ Unoptimized configuration of skylake micro-architecture
         not calibrated against the hardware """
@@ -138,8 +141,8 @@ class CalibCPU(DerivO3CPU):
     decodeWidth = 7
 
     # Pipeline delays
-    # fetchToDecodeDelay = 1
-    # decodeToRenameDelay = 1
+    fetchToDecodeDelay = 2
+    decodeToRenameDelay = 3
 
     fetchBufferSize = 16
     fetchQueueSize = 64
@@ -154,6 +157,7 @@ class CalibCPU(DerivO3CPU):
     fuPool.FUList[1].opList[0].opLat = 2
     fuPool.FUList[4].opList[0].opLat = 4
     # fuPool.FUList.append(FP_ALU())
+
     # Pipeline widths
     renameWidth = 7
     dispatchWidth = 7
@@ -163,13 +167,13 @@ class CalibCPU(DerivO3CPU):
     squashWidth = 7
 
     # Pipeline delays
-    # renameToIEWDelay = 1
-    # issueToExecuteDelay  = 1
-    # iewToRenameDelay = 1
-    # iewToCommitDelay = 1
-    # commitToFetchDelay = 1
-    # commitToIEWDelay = 1
-    # commitToRenameDelay = 1
+    renameToIEWDelay = 4
+    issueToExecuteDelay  = 1
+    iewToRenameDelay = 1
+    iewToCommitDelay = 4
+    commitToFetchDelay = 1
+    commitToIEWDelay = 1
+    commitToRenameDelay = 1
 
     LQEntries = 72
     SQEntries = 56
@@ -202,12 +206,42 @@ class MaxCPU(DerivO3CPU):
 
     fuPool = Ideal_FUPool()
     fuPool.FUList[0].count = 32
+
     fuPool.FUList[1].count = 32
+    fuPool.FUList[1].opList[0].opLat = 1
+
     fuPool.FUList[2].count = 32
+    fuPool.FUList[2].opList[0].opLat = 1
+    fuPool.FUList[2].opList[1].opLat = 1
+    fuPool.FUList[2].opList[2].opLat = 1
+
     fuPool.FUList[3].count = 32
+    fuPool.FUList[3].opList[0].opLat = 1
+    fuPool.FUList[3].opList[1].opLat = 1
+    fuPool.FUList[3].opList[2].opLat = 1
+    fuPool.FUList[3].opList[3].opLat = 1
+    fuPool.FUList[3].opList[4].opLat = 1
+    fuPool.FUList[3].opList[5].opLat = 1
+    fuPool.FUList[3].opList[6].opLat = 1
+    fuPool.FUList[3].opList[7].opLat = 1
+    fuPool.FUList[3].opList[8].opLat = 1
+    fuPool.FUList[3].opList[9].opLat = 1
+    fuPool.FUList[3].opList[10].opLat = 1
+    fuPool.FUList[3].opList[11].opLat = 1
+    fuPool.FUList[3].opList[12].opLat = 1
+    fuPool.FUList[3].opList[13].opLat = 1
+
     fuPool.FUList[4].count = 32
-    # fuPool.FUList[5].count = 32
-    # fuPool.FUList[6].count = 32
+    fuPool.FUList[4].opList[0].opLat = 1
+    fuPool.FUList[4].opList[1].opLat = 1
+
+    fuPool.FUList[5].count = 32
+    fuPool.FUList[5].opList[0].opLat = 1
+    fuPool.FUList[5].opList[1].opLat = 1
+
+    fuPool.FUList[6].count = 32
+    fuPool.FUList[6].opList[0].opLat = 1
+    fuPool.FUList[6].opList[1].opLat = 1
 
     # Pipeline widths
     renameWidth = 32
