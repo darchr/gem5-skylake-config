@@ -16,6 +16,7 @@ These are the CPU classes that configured in core.py
 | SIMD_Mult          | count=2, latency=5    | count=2, latency=4    |
 | Pipeline width     | width=4, latency=same | width=7, latency=same | 
 
+
 #### Missing Features:
 There are few features that are not modeled in gem5. Therefore, some offsetting has to done in order match the hardware performance.
 
