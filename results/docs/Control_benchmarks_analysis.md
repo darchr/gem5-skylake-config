@@ -16,7 +16,7 @@ Control Conditional Benchmarks:
 
 As we can see, the IPC for gem5 configured to model skylake architecture with LTAGE branchPredictor for '1-millon' iteration of the above benchmarks is less than the performance of the Intel processor measured using intel pcm.
 
-#Picture of just the IPC .
+
 <img src="../images/IPC_hw_cc+gem5.png" width="500" height="500">
 
 To look into it more closely we plot the conditional branch misprediction rate.
@@ -26,7 +26,7 @@ Increasing the total number of iterations in the benchamrks, decreases mispredic
 
 For 1 million Iteration the average difference between gem5 and the pcm is very high, but as we increase the number of iterations the gem5 misprediction rate comes down closer to pcm value, and increasing it further even gives better performance than pcm.
 
-The gem5 model of skylake uses LTAGE branchpredictor, the LTAGE predictor has (write the features of LTAGE predictor)., the warmup period of this predictor might be the reason for high misprediction for lesser iterations. 
+The gem5 model of skylake uses LTAGE branchpredictor, the LTAGE predictor has (To do : write the features of LTAGE predictor)., the warmup period of this predictor might be the reason for high misprediction for lesser iterations. 
 
 Even for extremely difficult to predict benchmark *CCh_st* : The average difference between the two reduces significantly. 
 
