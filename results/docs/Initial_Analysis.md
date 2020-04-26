@@ -8,13 +8,14 @@ These are the CPU classes that configured in core.py
 
 ### Difference between UnCalib and Calib configs
 **Note**: Memory system is not calibrated yet so, it is same for both
-|     Parameters     |        UnCalib        |        Calib          |         MAX           |
-|--------------------|-----------------------|-----------------------|-----------------------|
-| IntAlu             | count=4, latency=1    | count=7, latency=1    | count=32, latency=1   |
-| IntMult            | count=1, latency=4    | count=1, latency=2    | count=32, latency=1   |
-| SIMD_unit          | count=2, latency=same | count=2, latency=same | count=32, latency=1   |
-| SIMD_Mult          | count=2, latency=5    | count=2, latency=4    | count=32, latency=1   |
-| Pipeline width     | width=4, latency=same | width=7, latency=same | width=32, latency=1   | 
+|     Parameters     |        UnCalib        |        Calib          |         MAX           |      Hardware       |
+|--------------------|-----------------------|-----------------------|-----------------------|---------------------|
+| IntAlu             | count=4, latency=1    | count=7, latency=1    | count=32, latency=1   | count=4, latency=1  |
+| IntMult            | count=1, latency=4    | count=1, latency=2    | count=32, latency=1   | count=1, latency=4  |
+| FPALU              | count=1, latency=4    | count=1, latency=2    | count=32, latency=1   |         ?           |
+| SIMD_unit          | count=2, latency=same | count=2, latency=same | count=32, latency=1   |       Vector        |
+| SIMD_Mult          | count=2, latency=5    | count=2, latency=4    | count=32, latency=1   |       Vector        |       
+| Pipeline width     | width=4, Depth=3      | width=7, Depth=3      | width=32, Depth=3     | width=4, depth= ?   |
 
 
 #### Missing Features:
