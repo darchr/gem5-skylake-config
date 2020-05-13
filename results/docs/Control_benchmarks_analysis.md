@@ -12,35 +12,23 @@ Control Conditional Benchmarks:
 
 - CCh_st : impossible to predict with a store operation
 
-**IPC**
 
-As we can see, the IPC for gem5 configured to model skylake architecture with LTAGE branchPredictor for '100K' iteration of the above benchmarks is less than the performance of the Intel processor measured using intel pcm.
+**Understanding the role of Branch Miss-Predictions**
 
+Inorder to understand the role of branch predictors, we take a  closer look into it by ploting the conditional branch misprediction rate while using LTAGE branchmispredictor (which is the best branchpredictor)
 
-<img src="../images/IPC_hw_cc+gem5.png" width="500" height="500">
+The misprediction rate is almost same as the intel pcm for both UnCalibrated and Calibrated CPU. 
 
-To look into it more closely we plot the conditional branch misprediction rate.
-Increasing the total number of iterations in the benchamrks, decreases misprediction rate in both intel processor and gem5.
+While increasing the iteration to '500K', the misprediction comes down for gem5 while using LTAGE because LtAGE has a bigger history table, therefore gets better with increase in iterations.
 
-**Effect of increasing Iterations:**
+<img src="../images/Branchpred_misprediction_100K.png" width="500" height="500">
 
-For '100K' Iteration the average difference between gem5 and the pcm is very high, but as we increase the number of iterations the gem5 misprediction rate comes down closer to pcm value, and increasing it further even gives better performance than pcm.
+<img src="../images/Branchpred_misprediction_500K.png" width="500" height="500">
 
-The gem5 model of skylake uses LTAGE branchpredictor, the LTAGE predictor has (To do : write the features of LTAGE predictor)., the warmup period of this predictor might be the reason for high misprediction for lesser iterations. 
-
-Even for extremely difficult to predict benchmark *CCh_st* : The average difference between the two reduces significantly. 
-
-<img src="../images/Branchpredcc_hw+gem5_1M.png" width="500" height="500">
-<img src="../images/Branchpredcc_hw+gem5_1.7M.png" width="500" height="500">
-<img src="../images/Branchpred_cc_hw_5M.png" width="500" height="500">
-<img src="../images/Branchpred_cc_hw_7.5M.png" width="500" height="500">
+## Conclusion:
 
 
-**Using a different Branch Predictor:**
+<img src="../images/Branchpred_ipc_100K.png" width="500" height="500">
 
-When we use a tournament branch predictor which supposedly would have lesser warmup period than LTAGE predictor, the branch misprediction rate for '100K' iteration is much less than LTAGE prediction and is close to pcm value, but as we increase the number of iterations in the benchmark the tournament predictor performance drops compared to both LTAGE and pcm performance.
+As we can see, the IPC for gem5 configured to model skylake architecture with LTAGE branchPredictor for '100K' iteration of the above benchmarks is almost same as the performance of the Intel processor measured using intel pcm for 'Calib CPU', after Calibrating the CPU w.r.t execution benchmarks the IPC is increased significantly and is almost equal to the intel pcm values.
 
-<img src="../images/Branchpred_cc_BP_1m.png" width="500" height="500">
-<img src="../images/Branchpred_cc_BP_5m.png" width="500" height="500">
-
-This shows after the warmup period LTAGE performs better than other branch predictors.
