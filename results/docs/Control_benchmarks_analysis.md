@@ -30,5 +30,5 @@ While increasing the iteration to '500K', the misprediction comes down for gem5 
 
 <img src="../images/Branchpred_ipc_100K.png" width="500" height="500">
 
-As we can see, the IPC for gem5 configured to model skylake architecture with LTAGE branchPredictor for '100K' iteration of the above benchmarks is almost same as the performance of the Intel processor measured using intel pcm for 'Calib CPU', after Calibrating the CPU w.r.t execution benchmarks the IPC is increased significantly and is almost equal to the intel pcm values.
+As we can see, the IPC for gem5 configured to model skylake architecture with LTAGE branchPredictor for '100K' iteration of the above benchmarks is almost same as the performance of the Intel processor measured using intel pcm for 'Calib CPU'. This proves that after Calibrating the CPU w.r.t execution benchmarks the gem5 performance matches the performance of real hardware system.
 

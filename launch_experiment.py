@@ -58,9 +58,9 @@ if __name__ == "__main__":
 
     # All in benchmarks from VRG micro-benchmark suite
     micro_bm_list = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm',
-    'CS1','CS3','DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5',
-    'MD' 'MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst'
-    'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
+    'CS1','CS3','ED1','EF','EI','EM1','EM5',
+    'MD','MC','MCS','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst',
+    'ML2_BW_st']
 
     configs = ['UnCalib', 'Calib', 'Max']
     parser = argparse.ArgumentParser()
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     for cpu in cpus:
         for bm in micro_bm_list:
-            run = gem5Run.createSERun('skylake_micro-benchmarks_run_{}_{}'.format(cpu,bm),
+            run = gem5Run.createSERun('skylake_micro-benchmarks_run_rerun-test1_for_report_{}_{}'.format(cpu,bm),
                 'gem5/build/X86/gem5.opt',
                 'gem5-configs/run.py',
                 'stats/microbenchmark-experiments/{}/{}'.format(cpu,bm),
