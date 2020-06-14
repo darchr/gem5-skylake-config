@@ -265,4 +265,3 @@ class MaxCPU(DerivO3CPU):
     numPhysIntRegs = 256
     numPhysFloatRegs = 256 # Need to change this
     numROBEntries = 2096
-    

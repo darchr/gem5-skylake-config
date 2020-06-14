@@ -9,10 +9,7 @@ gem5
 
 # gem5 results
 stats
-
-#launch script
-launch_experiment.py
-
+results
 
 # packer binaries and the disk images
 disk-image/packer
