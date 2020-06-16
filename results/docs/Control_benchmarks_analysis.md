@@ -19,7 +19,7 @@ Inorder to understand the role of branch predictors, we take a  closer look into
 
 The misprediction rate is almost same as the intel pcm for both UnCalibrated and Calibrated CPU. 
 
-While increasing the iteration to '500K', the misprediction comes down for gem5 while using LTAGE because LtAGE has a bigger history table, therefore gets better with increase in iterations.
+While increasing the iteration to '500K', the misprediction comes down for gem5 while using LTAGE because LTAGE has a bigger history table, therefore gets better with increase in iterations.
 
 <img src="../images/Branchpred_misprediction_100K.png" width="500" height="500">
 
