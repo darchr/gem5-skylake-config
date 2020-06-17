@@ -6,7 +6,7 @@ Control Conditional Benchmarks:
 
 - CCa : completely baised branches
 
-- CCe : easy to predict -- branch pattern (10101010...)
+- CCe : easy to predict -- branch pattern (i.e., 10101010...)
 
 - CCm : heavly baised branches
 
@@ -15,11 +15,12 @@ Control Conditional Benchmarks:
 
 **Understanding the role of Branch Miss-Predictions**
 
-Inorder to understand the role of branch predictors, we take a  closer look into it by ploting the conditional branch misprediction rate while using LTAGE branchmispredictor (which is the best branchpredictor)
+To understand the role of branch predictors, we plot the conditional branch misprediction rate while using LTAGE branch predictor (which from our [analysis of control benchmarks](https://github.com/darchr/gem5art-experiments/blob/master/documents/sim-objects/branch-predictors.md) we know, is the most accurate branch predictor included in gem5)
 
-The misprediction rate is almost same as the intel pcm for both UnCalibrated and Calibrated CPU. 
+The misprediction rate for both UnCalibrated and Calibrated CPU is almost the same as the mispredsiction rate obtained from running the benchmarks natively on Intel Skylake Processor using Intel PCM tool.
 
-While increasing the iteration to '500K', the misprediction comes down for gem5 while using LTAGE because LTAGE has a bigger history table, therefore gets better with increase in iterations.
+Then increasing the iteration to '500K', the misprediction rate reduces for gem5 while using LTAGE because LTAGE has a larger history table.
+This large history table takes time to warm up and, thus, we see increased prediction rates as we increase the number of iterations.
 
 <img src="../images/Branchpred_misprediction_100K.png" width="500" height="500">
 
@@ -27,10 +28,8 @@ While increasing the iteration to '500K', the misprediction comes down for gem5 
 
 ## Conclusion:
 
-
 <img src="../images/Branchpred_ipc_100K.png" width="500" height="500">
 
-As we can see, the IPC for gem5 configured to model skylake architecture with LTAGE branchPredictor for '100K' iteration of the above benchmarks is almost same as the performance of the Intel processor measured using intel pcm for 'Calib CPU'.
-The 'Calib CPU' has a higher pipeline width comparing to the 'UnCalib CPU'. This could be another factor contributing to increase in performance of these benchmarks.
-	
-The various other different branch-predictor parameters like history length etc. should be toyed around with to study the branch predictors in depth with respect to hardware systems.
+As shown above, the IPC for gem5 configured to model Skylake architecture with LTAGE branch predictor for '100K' iterations of the control microbenchmarks benchmarks is almost the same as the performance of the Intel processor measured using Intel PCM for 'Calib CPU'.
+
+The various other different branch predictor parameters like history length should be studied to better understand the branch predictors in depth with respect to hardware systems.
