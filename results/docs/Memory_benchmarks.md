@@ -19,15 +19,17 @@ The gem5 results look analytically correct, the MI benchmark which is supposed t
 
 ## gem5 vs Hardware values
 
-As we have mirrored the memory model configuration in gem5 as close as possible to the intel skylake architecture, we expect to see almost similar missrate in gem5 and intel pcm values. 
+As we have mirrored the memory model configuration in gem5 as close as possible to the Intel Skylake architecture, we expect to see a similar miss rate in gem5 and hardware values obtained using Intel pcm tool.
 
 <img src="../images/memory_benchmarks_hw.png" width="300" height="300">
 
-From the above graph, it is evident that there is some feature in the hardware which makes it oerform well even for benchmarks that tend to have a higher missrate. This is mostly because of the fact that the strideprefecther and prefecthing techniques supported and modeled in gem5 classic cache model is not as good as the ones found in hardware.
+From the above graph, it is evident that there is some feature in the hardware which makes it perform well even for benchmarks that theoretically have a high miss rate.
+
+We believe the stride prefecther and other prefecthing techniques supported and modeled in gem5 classic cache model are not as good as the ones found in hardware.
 
 ## Other missing features
 
-There are other features in gem5 cache model that are not immediately available to mode the memory model to represent a real system like intel skylake architecture. 
+There are other features in gem5 cache model that are not immediately available to model the memory system of the  Intel Skylake architecture. 
 - Multi-level TLB support for X86 is not currently found in gem5. 
 - The MSHR in the real system also doubles as a line buffer or filter cache between the L1 Cache and the CPU. This feature is also missing in gem5.
 
