@@ -1,6 +1,6 @@
 # Control Benchmarks 
 
-The suite of control conditional benchmarks which is a part of the [university of wisconsin micro-benchmarks suite](https://github.com/VerticalResearchGroup/microbench) can be used to try and understand the difference in performance between the intel skylake processor and the branch prediction unit in gem5.
+The suite of control conditional benchmarks which is a part of the [University of Wisconsin micro-benchmarks suite](https://github.com/VerticalResearchGroup/microbench) can be used to try and understand the difference in performance between the Intel Skylake processor and the branch prediction unit in gem5.
 
 Control Conditional Benchmarks:
 
@@ -34,4 +34,3 @@ As we can see, the IPC for gem5 configured to model skylake architecture with LT
 The 'Calib CPU' has a higher pipeline width comparing to the 'UnCalib CPU'. This could be another factor contributing to increase in performance of these benchmarks.
 	
 The various other different branch-predictor parameters like history length etc. should be toyed around with to study the branch predictors in depth with respect to hardware systems.
-
