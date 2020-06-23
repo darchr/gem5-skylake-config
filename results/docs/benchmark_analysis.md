@@ -33,7 +33,7 @@ Is gem5's decoding of macro-ops into more micro-ops the reason for reduction in 
 
 For EF, apart from adjusting pipeline width as described above, the instruction latency of SIMDFLOATMUL was reduced to 4 from 5 in order to match the performance
 
-**O2:**
+**-O2:**
 
 ``` add    %edi,%edx
     add    %edi,%r9d
@@ -46,7 +46,7 @@ For EF, apart from adjusting pipeline width as described above, the instruction 
     jne    400ba0 <loop+0x30>
 ```
 
-**O3:**
+**-O3:**
 
 ``` add    $0x1,%eax
     paddd  %xmm0,%xmm3
