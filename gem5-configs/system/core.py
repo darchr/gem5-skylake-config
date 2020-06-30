@@ -264,5 +264,7 @@ class MaxCPU(DerivO3CPU):
     SQEntries = 128
     numPhysIntRegs = 256
     numPhysFloatRegs = 256 # Need to change this
+
     numROBEntries = 2096
     
+

@@ -80,6 +80,12 @@ class L1DCache(L1Cache):
     response_latency = 2
 
     size = '32kB'
+
+    writeback_clean = True 
+    write_buffers = 16
+    
+    write_allocator = WriteAllocator()
+    mshrs = 64
     
     def __init__(self, opts=None):
         super(L1DCache, self).__init__(opts)
