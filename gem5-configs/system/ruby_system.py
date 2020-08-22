@@ -33,7 +33,7 @@ from m5.util import convert
 from fs_tools import *
 from MI_example_caches import MyCacheSystem
 
-class MyRubySystem(LinuxX86System):
+class MyRubySystem(System):
 
     def __init__(self, kernel, disk, cpu_type, num_cpus, opts):
         super(MyRubySystem, self).__init__()
