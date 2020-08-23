@@ -57,25 +57,37 @@ run_scripts = Artifact.registerArtifact(
 if __name__ == "__main__":
 
     # All in benchmarks from VRG micro-benchmark suite
-    micro_bm_list = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm',
-    'CS1','CS3','DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5',
-    'MD' 'MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst'
-    'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
+    all_bms = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm',
+                     'CS1','CS3','DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5',
+                     'MD','MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst',
+                     'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
+
+    ctrl_bms = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm','CS1','CS3']
+    exe_bms = ['DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5']
+    mem_bms = ['MD','MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst',
+              'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
 
     configs = ['UnCalib', 'Calib', 'Max']
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cpu', choices = ['UnCalib','Calib','Max','all'], default='all',help="CPU type")
+    parser.add_argument('config', choices = ['UnCalib','Calib','Max','all'], type=str, help="Available configs")
+    parser.add_argument('bench', choices = ['ctrl','exe','mem','all'], type=str, help="Benchmark categories")
     args  = parser.parse_args()
 
-    if (args.cpu == 'all'):
-        cpus = configs
+    if (args.config == 'all'):
+        configs = ['UnCalib', 'Calib', 'Max']
     else:
-        cpus = [args.cpu]
-    
+        configs = [args.config]
+
+    if (args.bench == 'ctrl'): bms = ctrl_bms
+    elif (args.bench == 'exe'): bms = exe_bms
+    elif (args.bench == 'mem'): bms = mem_bms
+    elif (args.bench == 'all'): bms = all_bms
+    else: bms = []
+
     path = 'microbench'
-  
+
     # Register the each benchmark used for test as an artifact
-    for bm in micro_bm_list:
+    for bm in bms:
         bm = Artifact.registerArtifact(
         command = '''
         cd microbench/{};
@@ -89,14 +101,14 @@ if __name__ == "__main__":
         documentation = 'microbenchmark ({}) binary for X86  ISA'.format(bm)
         )
 
-    for cpu in cpus:
-        for bm in micro_bm_list:
-            run = gem5Run.createSERun('skylake_micro-benchmarks_run_{}_{}'.format(cpu,bm),
+    for config in configs:
+        for bm in bms:
+            run = gem5Run.createSERun(f'gem5_validation_skylake_{config}_{bm}',
                 'gem5/build/X86/gem5.opt',
                 'gem5-configs/run.py',
-                'stats/microbenchmark-experiments/{}/{}'.format(cpu,bm),
+                f'results/microbenchmark-experiments/{config}/{bm}',
                 gem5_binary, gem5_repo, experiments_repo,
-                cpu, os.path.join(path,bm,'bench.X86'))
+                config, os.path.join(path,bm,'bench.X86'))
             run.run()
 
 

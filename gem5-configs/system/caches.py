@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2016 Jason Lowe-Power
+# Copyright (c) 2020 The Regents of the University of California
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,8 @@ class L1Cache(Cache):
     data_latency = 1
     response_latency = 1
     mshrs = 16
-    tgts_per_mshr = 20
+    tgts_per_mshr = 1
+    write_buffers = 16
 
     def __init__(self, options=None):
         super(L1Cache, self).__init__()
@@ -75,18 +76,17 @@ class L1ICache(L1Cache):
 class L1DCache(L1Cache):
     """Simple L1 data cache"""
 
-    tag_latency = 2
-    data_latency = 4
-    response_latency = 2
+    tag_latency = 1
+    data_latency = 1
+    response_latency = 1
 
     size = '32kB'
 
-    writeback_clean = True 
-    write_buffers = 16
-    
+    prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
+    prefetch_on_access = True
+
     write_allocator = WriteAllocator()
-    mshrs = 64
-    
+
     def __init__(self, opts=None):
         super(L1DCache, self).__init__(opts)
         if not opts or not opts.l1d_size:
@@ -101,14 +101,18 @@ class L2Cache(Cache):
     """Simple L2 Cache"""
 
     # Default parameters
-    size = '1MB'
+    size = '1024kB'
     assoc = 16
-    tag_latency = 6 # configured to half of data latency
+    tag_latency = 12
     data_latency = 12
-    response_latency = 6 # configured to half of data latency
+    response_latency = 6
     mshrs = 32
-    tgts_per_mshr = 12
-    write_buffers = 32 # need to change this
+    tgts_per_mshr = 1
+    write_buffers = 32
+
+    clusivity = 'mostly_incl'
+    prefetch_on_access = True
+    prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
 
     def __init__(self, opts=None):
         super(L2Cache, self).__init__()
@@ -123,17 +127,21 @@ class L2Cache(Cache):
         self.mem_side = bus.slave
 
 class L3Cache(Cache):
-    """Simple L2 Cache with default values"""
+    """Simple L3 Cache """
 
     # Default parameters
     size = '2MB' # this has to be adjusted to crystal
-    assoc = 16
-    tag_latency = 21 # configured to half of data latency
-    data_latency = 42
-    response_latency = 21 # configured to half of data latency
+    assoc = 8
+    tag_latency = 44
+    data_latency = 44
+    response_latency = 21
     mshrs = 32
-    tgts_per_mshr = 12
+    tgts_per_mshr = 2
     write_buffers = 64 # need to change this
+
+    clusivity = 'mostly_excl'
+    prefetch_on_access = True
+    prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
 
     def __init__(self):
         super(L3Cache, self).__init__()

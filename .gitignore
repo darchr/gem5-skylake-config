@@ -2,21 +2,22 @@
 *.pyc
 
 # Python virtual environment
-gem5art-env
+venv
 
 # gem5 repos
 gem5
 
+# Microbenchmarks
+microbench
+
 # gem5 results
-stats
 results
 
-# packer binaries and the disk images
-disk-image/packer
-disk-image/packer_*_linux_amd64.zip
-disk-image/boot-exit/boot-exit-image/boot-exit
-disk-image/packer_cache
+# database
+database
+
+# disk images
+disk-image/
 
 # Linux repos
-linux-stable/
-linux-4.19.83/
+linux-configs/
