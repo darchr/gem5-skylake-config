@@ -1,6 +1,31 @@
-################################################################
-# This is a configuration file for front and back end of the cpu
-################################################################
+# -*- coding: utf-8 -*-
+# Copyright (c) 2020 The Regents of the University of California
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met: redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer;
+# redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution;
+# neither the name of the copyright holders nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Authors: Jason Lowe-Power, Trivikram Reddy
 
 import m5
 from m5.objects import *
@@ -72,16 +97,15 @@ class FPMem(FUDesc):
                OpDesc(opClass='FloatMemWrite', opLat=1) ]
     count = 2
 
-# class IprPort(FUDesc):
-#     opList = [ OpDesc(opClass='IprAccess', opLat = 3, pipelined = False) ]
-#     count = 1
+class IprPort(FUDesc):
+    opList = [ OpDesc(opClass='IprAccess', opLat = 3, pipelined = False) ]
+    count = 1
 
 class Ideal_FUPool(FUPool):
-    FUList = [ IntALU(), IntMult(), DivUnit(), SIMD_Unit(), SIMD_MUL(), SIMD_Misc(), FPMem() ]
+    FUList = [ IntALU(), IntMult(), DivUnit(), SIMD_Unit(), SIMD_MUL(), SIMD_Misc(), FPMem(), IprPort() ]
 
 class UnCalibCPU(DerivO3CPU):
-    """ Unoptimized configuration of skylake micro-architecture
-        not calibrated against the hardware """
+    """ Uncalibrated: Configured based on micro-architecture documentation """
     ######################################
     # Front End
     ######################################
@@ -130,8 +154,7 @@ class UnCalibCPU(DerivO3CPU):
 
 
 class CalibCPU(DerivO3CPU):
-    """ Optimized configuration of skylake micro-architecture 
-        calibrated against the hardware"""
+    """ Calibrated: configured to match the performance of hardware """
     ######################################
     # Front End
     ######################################
@@ -264,7 +287,5 @@ class MaxCPU(DerivO3CPU):
     SQEntries = 128
     numPhysIntRegs = 256
     numPhysFloatRegs = 256 # Need to change this
-
     numROBEntries = 2096
     
-

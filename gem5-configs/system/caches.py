@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2016 Jason Lowe-Power
+# Copyright (c) 2020 The Regents of the University of California
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -75,18 +75,17 @@ class L1ICache(L1Cache):
 class L1DCache(L1Cache):
     """Simple L1 data cache"""
 
-    tag_latency = 2
-    data_latency = 4
-    response_latency = 2
+    tag_latency = 1
+    data_latency = 1
+    response_latency = 1
 
     size = '32kB'
 
-    writeback_clean = True 
-    write_buffers = 16
-    
+    prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
+    prefetch_on_access = True
+
     write_allocator = WriteAllocator()
-    mshrs = 64
-    
+
     def __init__(self, opts=None):
         super(L1DCache, self).__init__(opts)
         if not opts or not opts.l1d_size:
@@ -101,14 +100,18 @@ class L2Cache(Cache):
     """Simple L2 Cache"""
 
     # Default parameters
-    size = '1MB'
-    assoc = 16
-    tag_latency = 6 # configured to half of data latency
+    size = '256kB'
+    assoc = 4
+    tag_latency = 12
     data_latency = 12
-    response_latency = 6 # configured to half of data latency
+    response_latency = 6
     mshrs = 32
     tgts_per_mshr = 12
-    write_buffers = 32 # need to change this
+    write_buffers = 32
+
+    clusivity = 'mostly_excl'
+    prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
+    prefetch_on_access = True
 
     def __init__(self, opts=None):
         super(L2Cache, self).__init__()
@@ -128,12 +131,15 @@ class L3Cache(Cache):
     # Default parameters
     size = '2MB' # this has to be adjusted to crystal
     assoc = 16
-    tag_latency = 21 # configured to half of data latency
+    tag_latency = 42
     data_latency = 42
-    response_latency = 21 # configured to half of data latency
+    response_latency = 10
     mshrs = 32
     tgts_per_mshr = 12
     write_buffers = 64 # need to change this
+
+    prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
+    prefetch_on_access = True
 
     def __init__(self):
         super(L3Cache, self).__init__()
