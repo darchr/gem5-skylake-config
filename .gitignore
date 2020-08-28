@@ -2,7 +2,7 @@
 *.pyc
 
 # Python virtual environment
-gem5art-env
+venv
 
 # gem5 repos
 gem5
@@ -10,6 +10,12 @@ gem5
 # gem5 results
 stats
 results
+
+# database
+database
+
+# microbenchmarks
+microbench
 
 # packer binaries and the disk images
 disk-image/packer

@@ -11,6 +11,10 @@ from gem5art.artifact.artifact import Artifact
 from gem5art.run import gem5Run
 from gem5art.tasks.tasks import run_gem5_instance
 
+sys.path.insert(1, '/home/tvreddy/darchr/gem5-validation-framework')
+from benchmarks import *
+import functions as fs
+
 experiments_repo = Artifact.registerArtifact(
     command = 'git clone https://github.com/darchr/gem5art-experiments.git',
     typ = 'git repo',
@@ -22,21 +26,16 @@ experiments_repo = Artifact.registerArtifact(
 
 gem5_repo = Artifact.registerArtifact(
     command = '''git clone https://gem5.googlesource.com/public/gem5;
-                 cd gem5;
-                 git cherry-pick 27dbffdb006c7bd12ad2489a2d346274fe646720;
-                 git cherry-pick ad65be829e7c6ffeaa143d292a7c4a5ba27c5c7c;
-                 wget https://github.com/darchr/gem5/commit/f0a358ee08aba1563c7b5277866095b4cbb7c36d.patch;
-                 git am f0a358ee08aba1563c7b5277866095b4cbb7c36d.patch --reject;
     ''',
     typ = 'git repo',
     name = 'gem5',
     path =  'gem5/',
     cwd = './',
-    documentation = 'git repo with gem5 master branch, gem5 version - 19, cherry picks with BTB, branch direction patches and vector mem support'
+    documentation = 'git repo for gem5'
 )
 
 gem5_binary = Artifact.registerArtifact(
-    command = 'scons build/X86/gem5.opt',
+    command = 'scons build/X86/gem5.opt -j16',
     typ = 'gem5 binary',
     name = 'gem5',
     cwd = 'gem5/',
@@ -56,26 +55,28 @@ run_scripts = Artifact.registerArtifact(
 
 if __name__ == "__main__":
 
-    # All in benchmarks from VRG micro-benchmark suite
-    micro_bm_list = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm',
-    'CS1','CS3','DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5',
-    'MD' 'MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst'
-    'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
-
-    configs = ['UnCalib', 'Calib', 'Max']
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cpu', choices = ['UnCalib','Calib','Max','all'], default='all',help="CPU type")
+    parser.add_argument('config', choices = ['UnCalib','Calib','Max','all'], type=str, help="CPU type")
+    parser.add_argument('bm', choices = ['ctrl', 'exe', 'mem', 'all'], type=str, help="Benchmark categories")
+    parser.add_argument('-w','--write', action="store_true", help="collect gem5 stats")
     args  = parser.parse_args()
+    bm_cat = args.bm
 
-    if (args.cpu == 'all'):
-        cpus = configs
+    if (args.config == 'all'):
+        configs = ['UnCalib', 'Calib', 'Max']
     else:
-        cpus = [args.cpu]
-    
+        configs = [args.config]
+
+    if (bm_cat == 'ctrl'): bms = vrg_ctrl
+    elif (bm_cat == 'exe'): bms = vrg_exe
+    elif (bm_cat == 'mem'): bms = vrg_mem
+    elif (bm_cat == 'all'): bms = vrg_all
+    else: bms = []
+
     path = 'microbench'
-  
+
     # Register the each benchmark used for test as an artifact
-    for bm in micro_bm_list:
+    for bm in bms:
         bm = Artifact.registerArtifact(
         command = '''
         cd microbench/{};
@@ -88,15 +89,16 @@ if __name__ == "__main__":
         inputs = [experiments_repo,],
         documentation = 'microbenchmark ({}) binary for X86  ISA'.format(bm)
         )
-
-    for cpu in cpus:
-        for bm in micro_bm_list:
-            run = gem5Run.createSERun('skylake_micro-benchmarks_run_{}_{}'.format(cpu,bm),
-                'gem5/build/X86/gem5.opt',
-                'gem5-configs/run.py',
-                'stats/microbenchmark-experiments/{}/{}'.format(cpu,bm),
-                gem5_binary, gem5_repo, experiments_repo,
-                cpu, os.path.join(path,bm,'bench.X86'))
-            run.run()
-
-
+    if (args.write):
+        for config in configs:
+            fs.getGem5Data(config,f'gcc-gem5-{config}-results.csv')
+    else:
+        for config in configs:
+            for bm in bms:
+                run = gem5Run.createSERun('skylake_micro-benchmarks_run_{}_{}'.format(config,bm),
+                    'gem5/build/X86/gem5.opt',
+                    'gem5-configs/run.py',
+                    'stats/microbenchmark-experiments/{}/{}'.format(config,bm),
+                    gem5_binary, gem5_repo, experiments_repo,
+                    config, os.path.join(path,bm,'bench.X86'))
+                run.run()
