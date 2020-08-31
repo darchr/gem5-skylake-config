@@ -11,7 +11,7 @@ from gem5art.artifact.artifact import Artifact
 from gem5art.run import gem5Run
 from gem5art.tasks.tasks import run_gem5_instance
 
-sys.path.insert(1, '/home/tvreddy/darchr/gem5-validation-framework')
+sys.path.insert(1, '/fasthome/shparekh/gem5-validation-framework/')
 from benchmarks import *
 import functions as fs
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('config', choices = ['UnCalib','Calib','Max','all'], type=str, help="CPU type")
-    parser.add_argument('bm', choices = ['ctrl', 'exe', 'mem', 'all'], type=str, help="Benchmark categories")
+    parser.add_argument('bm', choices = ['ctrl', 'exe', 'mem', 'all', 'CCe'], type=str, help="Benchmark categories")
     parser.add_argument('-w','--write', action="store_true", help="collect gem5 stats")
     args  = parser.parse_args()
     bm_cat = args.bm
@@ -71,6 +71,7 @@ if __name__ == "__main__":
     elif (bm_cat == 'exe'): bms = vrg_exe
     elif (bm_cat == 'mem'): bms = vrg_mem
     elif (bm_cat == 'all'): bms = vrg_all
+    elif (bm_cat == 'CCe'): bms = individual
     else: bms = []
 
     path = 'microbench'
