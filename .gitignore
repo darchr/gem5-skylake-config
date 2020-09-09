@@ -7,13 +7,16 @@ venv
 # gem5 repos
 gem5
 
+# Microbenchmarks
+microbench
+
 # gem5 results
-stats
 results
 
 # database
 database
 
+<<<<<<< HEAD
 # microbenchmarks
 microbench
 
@@ -22,7 +25,10 @@ disk-image/packer
 disk-image/packer_*_linux_amd64.zip
 disk-image/boot-exit/boot-exit-image/boot-exit
 disk-image/packer_cache
+=======
+# disk images
+disk-image/
+>>>>>>> 28f4d46fe2da3a41803a82e6f84864267bf1972d
 
 # Linux repos
-linux-stable/
-linux-4.19.83/
+linux-configs/

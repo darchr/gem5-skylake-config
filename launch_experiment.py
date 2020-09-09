@@ -55,10 +55,21 @@ run_scripts = Artifact.registerArtifact(
 
 if __name__ == "__main__":
 
+    # All in benchmarks from VRG micro-benchmark suite
+    all_bms = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm',
+                     'CS1','CS3','DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5',
+                     'MD','MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst',
+                     'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
+
+    ctrl_bms = ['CCa','CCe','CCh', 'CCh_st', 'CCl','CCm','CF1','CRd','CRf','CRm','CS1','CS3']
+    exe_bms = ['DP1d','DP1f','DPcvt','DPT','DPTd','ED1','EF','EI','EM1','EM5']
+    mem_bms = ['MD','MC','MCS','M_Dyn','MI','MIM','MIM2','MIP','ML2','ML2_BW_ld','ML2_BW_ldst',
+              'ML2_BW_st','ML2_st','MM','MM_st','STc','STL2','STL2b']
+
+    configs = ['UnCalib', 'Calib', 'Max']
     parser = argparse.ArgumentParser()
-    parser.add_argument('config', choices = ['UnCalib','Calib','Max','all'], type=str, help="CPU type")
-    parser.add_argument('bm', choices = ['ctrl', 'exe', 'mem', 'all', 'CCe'], type=str, help="Benchmark categories")
-    parser.add_argument('-w','--write', action="store_true", help="collect gem5 stats")
+    parser.add_argument('config', choices = ['UnCalib','Calib','Max','all'], type=str, help="Available configs")
+    parser.add_argument('bench', choices = ['ctrl','exe','mem','all'], type=str, help="Benchmark categories")
     args  = parser.parse_args()
     bm_cat = args.bm
 
@@ -67,11 +78,10 @@ if __name__ == "__main__":
     else:
         configs = [args.config]
 
-    if (bm_cat == 'ctrl'): bms = vrg_ctrl
-    elif (bm_cat == 'exe'): bms = vrg_exe
-    elif (bm_cat == 'mem'): bms = vrg_mem
-    elif (bm_cat == 'all'): bms = vrg_all
-    elif (bm_cat == 'CCe'): bms = individual
+    if (args.bench == 'ctrl'): bms = ctrl_bms
+    elif (args.bench == 'exe'): bms = exe_bms
+    elif (args.bench == 'mem'): bms = mem_bms
+    elif (args.bench == 'all'): bms = all_bms
     else: bms = []
 
     path = 'microbench'
@@ -90,16 +100,15 @@ if __name__ == "__main__":
         inputs = [experiments_repo,],
         documentation = 'microbenchmark ({}) binary for X86  ISA'.format(bm)
         )
-    if (args.write):
-        for config in configs:
-            fs.getGem5Data(config,f'gcc-gem5-{config}-results.csv')
-    else:
-        for config in configs:
-            for bm in bms:
-                run = gem5Run.createSERun('skylake_micro-benchmarks_run_{}_{}'.format(config,bm),
-                    'gem5/build/X86/gem5.opt',
-                    'gem5-configs/run.py',
-                    'stats/microbenchmark-experiments/{}/{}'.format(config,bm),
-                    gem5_binary, gem5_repo, experiments_repo,
-                    config, os.path.join(path,bm,'bench.X86'))
-                run.run()
+
+    for config in configs:
+        for bm in bms:
+            run = gem5Run.createSERun(f'gem5_validation_skylake_{config}_{bm}',
+                'gem5/build/X86/gem5.opt',
+                'gem5-configs/run.py',
+                f'results/microbenchmark-experiments/{config}/{bm}',
+                gem5_binary, gem5_repo, experiments_repo,
+                config, os.path.join(path,bm,'bench.X86'))
+            run.run()
+
+
