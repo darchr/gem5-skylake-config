@@ -101,32 +101,18 @@ class L2Cache(Cache):
     """Simple L2 Cache"""
 
     # Default parameters
-<<<<<<< HEAD
-    size = '256kB'
-    assoc = 4
-=======
     size = '1024kB'
     assoc = 16
->>>>>>> 28f4d46fe2da3a41803a82e6f84864267bf1972d
     tag_latency = 12
     data_latency = 12
     response_latency = 6
     mshrs = 32
-<<<<<<< HEAD
-    tgts_per_mshr = 12
-    write_buffers = 32
-
-    clusivity = 'mostly_excl'
-    prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
-    prefetch_on_access = True
-=======
     tgts_per_mshr = 1
     write_buffers = 32
 
     clusivity = 'mostly_incl'
     prefetch_on_access = True
     prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
->>>>>>> 28f4d46fe2da3a41803a82e6f84864267bf1972d
 
     def __init__(self, opts=None):
         super(L2Cache, self).__init__()
@@ -145,29 +131,17 @@ class L3Cache(Cache):
 
     # Default parameters
     size = '2MB' # this has to be adjusted to crystal
-<<<<<<< HEAD
-    assoc = 16
-    tag_latency = 42
-    data_latency = 42
-    response_latency = 10
-=======
     assoc = 8
     tag_latency = 44
     data_latency = 44
     response_latency = 21
->>>>>>> 28f4d46fe2da3a41803a82e6f84864267bf1972d
     mshrs = 32
     tgts_per_mshr = 2
     write_buffers = 64 # need to change this
 
-<<<<<<< HEAD
-    prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
-    prefetch_on_access = True
-=======
     clusivity = 'mostly_excl'
     prefetch_on_access = True
     prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
->>>>>>> 28f4d46fe2da3a41803a82e6f84864267bf1972d
 
     def __init__(self):
         super(L3Cache, self).__init__()
