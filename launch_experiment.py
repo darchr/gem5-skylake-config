@@ -71,7 +71,7 @@ if __name__ == "__main__":
     parser.add_argument('config', choices = ['UnCalib','Calib','Max','all'], type=str, help="Available configs")
     parser.add_argument('bench', choices = ['ctrl','exe','mem','all'], type=str, help="Benchmark categories")
     args  = parser.parse_args()
-    bm_cat = args.bm
+    bm_cat = args.bench
 
     if (args.config == 'all'):
         configs = ['UnCalib', 'Calib', 'Max']
