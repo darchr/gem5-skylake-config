@@ -104,12 +104,25 @@ class IprPort(FUDesc):
 class Ideal_FUPool(FUPool):
     FUList = [ IntALU(), IntMult(), DivUnit(), SIMD_Unit(), SIMD_MUL(), SIMD_Misc(), FPMem(), IprPort() ]
 
+class IndirectPred(SimpleIndirectPredictor):
+    indirectSets = 256 # Cache sets for indirect predictor
+    indirectWays = 2 # Ways for indirect predictor
+    indirectTagSize = 16 # Indirect target cache tag bits
+    indirectPathLength = 3 # Previous indirect targets to use for path history
+    indirectGHRBits = 13 # Indirect GHR number of bits
+
+# If indirect Predictor is disabled use BTB with these params
+btbEntries = 512
+btbTagSize = 19
+
 class UnCalibCPU(DerivO3CPU):
     """ Uncalibrated: Configured based on micro-architecture documentation """
     ######################################
     # Front End
     ######################################
     branchPred = LTAGE()
+    # use NULL to enable BTB
+    branchPred.indirectBranchPred = NULL
 
     # Pipeline widths
     fetchWidth = 4
@@ -159,6 +172,11 @@ class CalibCPU(DerivO3CPU):
     # Front End
     ######################################
     branchPred = LTAGE()
+    branchPred.BTBEntries = btbEntries
+    branchPred.BTBTagSize = btbTagSize
+    # use NULL to enable BTB
+    branchPred.indirectBranchPred = NULL
+
     # Pipeline widths
     fetchWidth = 7
     decodeWidth = 7
@@ -210,6 +228,8 @@ class MaxCPU(DerivO3CPU):
     # Front End
     ######################################
     branchPred = LTAGE()
+    # use NULL to enable BTB
+    branchPred.indirectBranchPred = NULL
 
     # Pipeline widths
     fetchWidth = 32
@@ -288,4 +308,3 @@ class MaxCPU(DerivO3CPU):
     numPhysIntRegs = 256
     numPhysFloatRegs = 256 # Need to change this
     numROBEntries = 2096
-    
