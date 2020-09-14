@@ -171,7 +171,7 @@ class CalibCPU(DerivO3CPU):
     ######################################
     # Front End
     ######################################
-    branchPred = LTAGE()
+    branchPred = TournamentBP()
     branchPred.BTBEntries = btbEntries
     branchPred.BTBTagSize = btbTagSize
     # use NULL to enable BTB
