@@ -196,6 +196,7 @@ class CalibCPU(DerivO3CPU):
     fuPool = Ideal_FUPool()
     fuPool.FUList[0].count = 7
     fuPool.FUList[1].opList[0].opLat = 2
+    fuPool.FUList[2].opList[0].opLat = 2
     fuPool.FUList[4].opList[0].opLat = 4
     # fuPool.FUList.append(FP_ALU())
 
