@@ -2,13 +2,15 @@
 *.pyc
 
 # Python virtual environment
+gem5art-env
 venv
 
 # gem5 repos
 gem5
 
 # Microbenchmarks
-microbench
+gcc-750-microbench
+gcc-485-microbench
 
 # gem5 results
 results
@@ -17,7 +19,14 @@ results
 database
 
 # disk images
-disk-image/
+disk-image/packer
+disk-image/spec-2006/spec-2006-image/spec-2006
+disk-image/packer_cache
+disk-image/spec-2006/CPU2006v1.0.1.iso
 
 # Linux repos
-linux-configs/
+linux-4.19.83/
+
+# Scripts not used with gem5art
+launch-microbm.py
+launch-spec2006.py
