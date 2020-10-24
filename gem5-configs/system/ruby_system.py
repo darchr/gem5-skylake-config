@@ -31,23 +31,25 @@ import m5
 from m5.objects import *
 from m5.util import convert
 from fs_tools import *
-from MI_example_caches import MyCacheSystem
+import math
+
 
 class MyRubySystem(System):
 
-    def __init__(self, kernel, disk, cpu_type, num_cpus, opts):
+    def __init__(self, kernel, disk, mem_sys, num_cpus, TimingCPUModel):
         super(MyRubySystem, self).__init__()
-        self._opts = opts
 
-        self._host_parallel = cpu_type == "kvm"
+        self._host_parallel = True
 
         # Set up the clock domain and the voltage domain
         self.clk_domain = SrcClockDomain()
-        self.clk_domain.clock = '3GHz'
+        self.clk_domain.clock = '3.5GHz'
         self.clk_domain.voltage_domain = VoltageDomain()
 
-        self.mem_ranges = [AddrRange(Addr('3GB')), # All data
+        mem_size = '32GB'
+        self.mem_ranges = [AddrRange('100MB'), # For kernel
                            AddrRange(0xC0000000, size=0x100000), # For I/0
+                           AddrRange(Addr('4GB'), size = mem_size) # All data
                            ]
 
         self.initFS(num_cpus)
@@ -58,22 +60,30 @@ class MyRubySystem(System):
         self.setDiskImages(disk, disk)
 
         # Change this path to point to the kernel you want to use
-        self.kernel = kernel
+        self.workload.object_file = kernel
         # Options specified on the kernel command line
         boot_options = ['earlyprintk=ttyS0', 'console=ttyS0', 'lpj=7999923',
                          'root=/dev/hda1']
 
-        self.boot_osflags = ' '.join(boot_options)
+        self.workload.command_line = ' '.join(boot_options)
 
         # Create the CPUs for our system.
-        self.createCPU(cpu_type, num_cpus)
+        self.createCPU(num_cpus,TimingCPUModel)
 
-        self.createMemoryControllersDDR3()
+        self.createMemoryControllersDDR4()
 
         # Create the cache hierarchy for the system.
-        self.caches = MyCacheSystem()
+        if mem_sys == 'MI_example':
+            from MI_example_caches import MIExampleSystem
+            self.caches = MIExampleSystem()
+        elif mem_sys == 'MESI_Two_Level':
+            from MESI_Two_Level import MESITwoLevelCache
+            self.caches = MESITwoLevelCache()
+        elif mem_sys == 'MOESI_CMP_directory':
+            from MOESI_CMP_directory import MOESICMPDirCache
+            self.caches = MOESICMPDirCache()
         self.caches.setup(self, self.cpu, self.mem_cntrls,
-                          [self.pc.south_bridge.ide.dma, self.iobus.master],
+                          [self.pc.south_bridge.ide.dma, self.iobus.mem_side_ports],
                           self.iobus)
 
         if self._host_parallel:
@@ -90,47 +100,52 @@ class MyRubySystem(System):
     def totalInsts(self):
         return sum([cpu.totalInsts() for cpu in self.cpu])
 
-    def createCPU(self, cpu_type, num_cpus):
-        if cpu_type == "atomic":
-            self.cpu = [AtomicSimpleCPU(cpu_id = i)
-                              for i in range(num_cpus)]
-            self.mem_mode = 'atomic'
-        elif cpu_type == "kvm":
-            # Note KVM needs a VM and atomic_noncaching
-            self.cpu = [X86KvmCPU(cpu_id = i)
-                        for i in range(num_cpus)]
-            self.kvm_vm = KvmVM()
-            self.mem_mode = 'atomic_noncaching'
-        elif cpu_type == "o3":
-            self.cpu = [DerivO3CPU(cpu_id = i)
-                        for i in range(num_cpus)]
-            self.mem_mode = 'timing'
-        elif cpu_type == "simple":
-            self.cpu = [TimingSimpleCPU(cpu_id = i)
-                        for i in range(num_cpus)]
-            self.mem_mode = 'timing'
-        else:
-            m5.fatal("No CPU type {}".format(cpu_type))
-
+    def createCPU(self, num_cpus, TimingCPUModel):
+        # Note KVM needs a VM and atomic_noncaching
+        self.cpu = [X86KvmCPU(cpu_id = i)
+                    for i in range(num_cpus)]
         map(lambda c: c.createThreads(), self.cpu)
-        map(lambda c: c.createInterruptController(), self.cpu)
+        self.kvm_vm = KvmVM()
+        self.mem_mode = 'atomic_noncaching'
+
+        self.detailed_cpu = [TimingCPUModel(cpu_id = i,
+                                    switched_out = True)
+                for i in range(num_cpus)]
+
+        map(lambda c: c.createThreads(), self.detailed_cpu)
+
+    def switchCpus(self, old, new):
+        assert(new[0].switchedOut())
+        m5.switchCpus(self, zip(old, new))
 
     def setDiskImages(self, img_path_1, img_path_2):
         disk0 = CowDisk(img_path_1)
         disk2 = CowDisk(img_path_2)
         self.pc.south_bridge.ide.disks = [disk0, disk2]
 
-    def createMemoryControllersDDR3(self):
-        self._createMemoryControllers(1, DDR3_1600_8x8)
+    def createMemoryControllersDDR4(self):
+        self._createMemoryControllers(4, DDR4_2400_16x4)
 
     def _createMemoryControllers(self, num, cls):
-        self.mem_cntrls = [
-            cls(range = self.mem_ranges[0])
-            for i in range(num)
-        ]
+        intlv_bits = int(math.log(num, 2))
+        mem_ctrls = []
+        for i in range(num):
+            interface = cls()
+            interface.range = AddrRange(self.mem_ranges[0].start,
+                            size = self.mem_ranges[0].size(),
+                            intlvHighBit = 7,
+                            xorHighBit = 20,
+                            intlvBits = intlv_bits,
+                            intlvMatch = i)
+            ctrl = MemCtrl()
+            ctrl.dram = interface
+            mem_ctrls.append(ctrl)
+        self.mem_cntrls = mem_ctrls
 
     def initFS(self, cpus):
         self.pc = Pc()
+
+        self.workload = X86FsLinux()
 
         # North Bridge
         self.iobus = IOXBar()
@@ -145,7 +160,7 @@ class MyRubySystem(System):
         ###############################################
 
         # Add in a Bios information structure.
-        self.smbios_table.structures = [X86SMBiosBiosInformation()]
+        self.workload.smbios_table.structures = [X86SMBiosBiosInformation()]
 
         # Set up the Intel MP table
         base_entries = []
@@ -203,8 +218,8 @@ class MyRubySystem(System):
         assignISAInt(1, 1)
         for i in range(3, 15):
             assignISAInt(i, i)
-        self.intel_mp_table.base_entries = base_entries
-        self.intel_mp_table.ext_entries = ext_entries
+        self.workload.intel_mp_table.base_entries = base_entries
+        self.workload.intel_mp_table.ext_entries = ext_entries
 
         entries = \
            [
@@ -221,4 +236,4 @@ class MyRubySystem(System):
         entries.append(X86E820Entry(addr = 0xFFFF0000, size = '64kB',
                                     range_type=2))
 
-        self.e820_table.entries = entries
+        self.workload.e820_table.entries = entries

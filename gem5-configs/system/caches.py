@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2020 The Regents of the University of California
+# Copyright (c) 2016 Jason Lowe-Power
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,51 @@
 #
 # Authors: Jason Lowe-Power
 
+""" Caches with options for a simple gem5 configuration script
+
+This file contains L1 I/D and L2 caches to be used in the simple
+gem5 configuration script.  It uses the SimpleOpts wrapper to set up command
+line options from each individual class.
+"""
+
 import m5
-from m5.objects import *
+from m5.objects import Cache, L2XBar, StridePrefetcher, WriteAllocator, SubSystem, TreePLRURP, PIFPrefetcher
+from m5.params import AddrRange, AllMemory, MemorySize
+from m5.util.convert import toMemorySize
 
-class L1Cache(Cache):
-    """Simple L1 Cache"""
+# Some specific options for caches
+# For all options see src/mem/cache/BaseCache.py
 
-    assoc = 8
+class PrefetchCache(Cache):
+
+    def __init__(self):
+        super(PrefetchCache, self).__init__()
+        self.prefetcher = PIFPrefetcher()
+        self.replacement_policy = TreePLRURP()
+        self.prefetch_on_access = True
+
+class L1Cache(PrefetchCache):
+    """Simple L1 Cache with default values"""
+
+    assoc = 16
+
     tag_latency = 1
     data_latency = 1
     response_latency = 1
-    mshrs = 16
-    tgts_per_mshr = 1
-    write_buffers = 16
 
-    def __init__(self, options=None):
+    mshrs = 128
+    tgts_per_mshr = 16
+    write_buffers = 56
+    demand_mshr_reserve = 96
+
+    # writeback_clean = True
+
+    def __init__(self):
         super(L1Cache, self).__init__()
-        pass
 
     def connectBus(self, bus):
         """Connect this cache to a memory-side bus"""
-        self.mem_side = bus.slave
+        self.mem_side = bus.cpu_side_ports
 
     def connectCPU(self, cpu):
         """Connect this cache's port to a CPU-side port
@@ -55,120 +79,113 @@ class L1Cache(Cache):
         raise NotImplementedError
 
 class L1ICache(L1Cache):
-    """Simple L1 instruction cache"""
+    """Simple L1 instruction cache with default values"""
 
-    tag_latency = 1
-    data_latency = 1
-    response_latency = 1
-
+    # Set the default size
     size = '32kB'
 
-    def __init__(self, opts=None):
-        super(L1ICache, self).__init__(opts)
-        if not opts or not opts.l1i_size:
-            return
-        self.size = opts.l1i_size
+    def __init__(self):
+        super(L1ICache, self).__init__()
 
     def connectCPU(self, cpu):
         """Connect this cache's port to a CPU icache port"""
         self.cpu_side = cpu.icache_port
 
 class L1DCache(L1Cache):
-    """Simple L1 data cache"""
+    """Simple L1 data cache with default values"""
+
+    # Set the default size
+    size = '32kB'
+    assoc = 16
 
     tag_latency = 1
     data_latency = 1
     response_latency = 1
 
-    size = '32kB'
-
-    prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
-    prefetch_on_access = True
+    write_buffers = 128
 
     write_allocator = WriteAllocator()
+    write_allocator.coalesce_limit = 2
+    write_allocator.no_allocate_limit = 8
+    write_allocator.delay_threshold = 8
 
-    def __init__(self, opts=None):
-        super(L1DCache, self).__init__(opts)
-        if not opts or not opts.l1d_size:
-            return
-        self.size = opts.l1d_size
+    def __init__(self):
+        super(L1DCache, self).__init__()
 
     def connectCPU(self, cpu):
         """Connect this cache's port to a CPU dcache port"""
         self.cpu_side = cpu.dcache_port
 
-class L2Cache(Cache):
-    """Simple L2 Cache"""
-
+class MMUCache(PrefetchCache):
     # Default parameters
-    size = '1024kB'
-    assoc = 16
-    tag_latency = 12
-    data_latency = 12
-    response_latency = 6
+    size = '8kB'
+    assoc = 8
+    tag_latency = 1
+    data_latency = 1
+    response_latency = 1
     mshrs = 32
-    tgts_per_mshr = 1
-    write_buffers = 32
+    tgts_per_mshr = 8
 
-    clusivity = 'mostly_incl'
-    prefetch_on_access = True
-    prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
+    def __init__(self):
+        super(MMUCache, self).__init__()
 
-    def __init__(self, opts=None):
+    def connectCPU(self, cpu):
+        """Connect the CPU itb and dtb to the cache
+           Note: This creates a new crossbar
+        """
+        self.mmubus = L2XBar()
+        self.cpu_side = self.mmubus.mem_side_ports
+        for tlb in [cpu.itb, cpu.dtb]:
+            self.mmubus.cpu_side_ports = tlb.walker.port
+
+    def connectBus(self, bus):
+        """Connect this cache to a memory-side bus"""
+        self.mem_side = bus.cpu_side_ports
+
+class L2Cache(PrefetchCache):
+    """Simple L2 Cache with default values"""
+
+    size = '1MB'
+    assoc = 16
+    tag_latency = 14
+    data_latency = 14
+    response_latency = 1
+    mshrs = 256
+    tgts_per_mshr = 16
+    write_buffers = 256
+
+    def __init__(self):
         super(L2Cache, self).__init__()
-        if not opts or not opts.l2_size:
-            return
-        self.size = opts.l2_size
 
     def connectCPUSideBus(self, bus):
-        self.cpu_side = bus.master
+        self.cpu_side = bus.mem_side_ports
 
     def connectMemSideBus(self, bus):
-        self.mem_side = bus.slave
+        self.mem_side = bus.cpu_side_ports
 
-class L3Cache(Cache):
-    """Simple L3 Cache """
+class L3Cache(PrefetchCache):
+    """Simple L3 Cache bank with default values
+       This assumes that the L3 is made up of multiple banks. This cannot
+       be used as a standalone L3 cache.
+    """
 
     # Default parameters
-    size = '2MB' # this has to be adjusted to crystal
-    assoc = 8
+    size = '2MB'
+    assoc = 16
     tag_latency = 44
     data_latency = 44
-    response_latency = 21
-    mshrs = 32
-    tgts_per_mshr = 2
-    write_buffers = 64 # need to change this
+    response_latency = 1
+    mshrs = 256
+    tgts_per_mshr = 16
+    write_buffers = 256
 
     clusivity = 'mostly_excl'
-    prefetch_on_access = True
-    prefetcher = StridePrefetcher() # TaggedPrefetcher() StridePrefetcher()
 
     def __init__(self):
         super(L3Cache, self).__init__()
 
     def connectCPUSideBus(self, bus):
-        self.cpu_side = bus.master
+        self.cpu_side = bus.mem_side_ports
 
     def connectMemSideBus(self, bus):
-        self.mem_side = bus.slave
-
-class L3XBar(CoherentXBar):
-    # 256-bit crossbar by default
-    width = 32
-
-    # Assume that most of this is covered by the cache latencies, with
-    # no more than a single pipeline stage for any packet.
-    frontend_latency = 1
-    forward_latency = 0
-    response_latency = 1
-    snoop_response_latency = 1
-
-    # Use a snoop-filter by default, and set the latency to zero as
-    # the lookup is assumed to overlap with the frontend latency of
-    # the crossbar
-    snoop_filter = SnoopFilter(lookup_latency = 0)
-
-    # This specialisation of the coherent crossbar is to be considered
-    # the point of unification, it connects the dcache and the icache
-    # to the first level of unified cache.
-    point_of_unification = True
+        self.mem_side = bus.cpu_side_ports

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) 2016 Jason Lowe-Power
 # Copyright (c) 2020 The Regents of the University of California
 # All rights reserved.
 #
@@ -31,7 +32,6 @@ import m5
 from m5.objects import *
 from core import *
 from caches import *
-import argparse
 
 class MySystem(System):
 
@@ -45,31 +45,47 @@ class MySystem(System):
     self.clk_domain.voltage_domain = VoltageDomain()
 
     self.mem_mode = 'timing'
-    self.mem_ranges = [AddrRange('32768MB')] # Need to change this
+    mem_size = '32GB'
+    self.mem_ranges = [AddrRange('100MB'), # For kernel
+                      AddrRange(0xC0000000, size=0x100000), # For I/0
+                      AddrRange(Addr('4GB'), size = mem_size) # All data
+                        ]
 
     self.cpu = self._CPUModel()
+
+    # Create a memory bus
+    self.membus = SystemXBar(width = 192)
+    self.membus.badaddr_responder = BadAddr()
+    self.membus.default = Self.badaddr_responder.pio
+
+    # Set up the system port for functional access from the simulator
+    self.system_port = self.membus.cpu_side_ports
 
     # Create an L1 instruction and data cache
     self.cpu.icache = L1ICache()
     self.cpu.dcache = L1DCache()
+    self.cpu.mmucache = MMUCache()
 
     # Connect the instruction and data caches to the CPU
     self.cpu.icache.connectCPU(self.cpu)
     self.cpu.dcache.connectCPU(self.cpu)
+    self.cpu.mmucache.connectCPU(self.cpu)
 
     # Create a memory bus, a coherent crossbar, in this case
-    self.l2bus = L2XBar(width = 64)
+    self.l2bus = L2XBar(width = 192)
 
     # Hook the CPU ports up to the l2bus
     self.cpu.icache.connectBus(self.l2bus)
     self.cpu.dcache.connectBus(self.l2bus)
+    self.cpu.mmucache.connectBus(self.l2bus)
 
     # Create an L2 cache and connect it to the l2bus
     self.l2cache = L2Cache()
     self.l2cache.connectCPUSideBus(self.l2bus)
 
     # Create a memory bus, a coherent crossbar, in this case
-    self.l3bus = L3XBar()
+    self.l3bus = L2XBar(width = 192,
+                        snoop_filter = SnoopFilter(max_capacity='32MB'))
 
     # Connect the L2 cache to the l3bus
     self.l2cache.connectMemSideBus(self.l3bus)
@@ -78,31 +94,68 @@ class MySystem(System):
     self.l3cache = L3Cache()
     self.l3cache.connectCPUSideBus(self.l3bus)
 
-    # Create a memory bus
-    self.membus = SystemXBar(width = 64)
-
-    # Connect the L2 cache to the membus
+    # Connect the L3 cache to the membus
     self.l3cache.connectMemSideBus(self.membus)
 
     # create the interrupt controller for the CPU
     self.cpu.createInterruptController()
 
-    self.cpu.interrupts[0].pio = self.membus.master
-    self.cpu.interrupts[0].int_master = self.membus.slave
-    self.cpu.interrupts[0].int_slave = self.membus.master
+    self.cpu.interrupts[0].pio = self.membus.mem_side_ports
+    self.cpu.interrupts[0].int_requestor = self.membus.cpu_side_ports
+    self.cpu.interrupts[0].int_responder = self.membus.mem_side_ports
 
-    # Connect the system up to the membus
-    self.system_port = self.membus.slave
+    self.createMemoryControllersDDR4()
 
-    # Create a DDR4 memory controller
-    self.mem_ctrl =  DDR4_2400_16x4()
-    self.mem_ctrl.range = self.mem_ranges[0]
-    self.mem_ctrl.port = self.membus.master
+    # provide cache paramters for verbatim CPU
+    if (self._CPUModel is VerbatimCPU):
+      # L1I-Cache
+      self.cpu.icache.size = '32kB'
+      self.cpu.icache.tag_latency = 4
+      self.cpu.icache.data_latency = 4
+      self.cpu.icache.response_latency = 1
+      # L1D-Cache
+      self.cpu.dcache.tag_latency = 4
+      self.cpu.dcache.data_latency = 4
+      self.cpu.dcache.response_latency = 1
+
+  # Memory latency: Using the smaller number from [3]: 96ns
+  def createMemoryControllersDDR4(self):
+    self._createMemoryControllers(1, DDR4_2400_16x4)
+
+  def _createMemoryControllers(self, num, cls):
+    kernel_controller = self._createKernelMemoryController(cls)
+
+    ranges = self._getInterleaveRanges(self.mem_ranges[-1], num, 6, 20)
+    self.mem_cntrls = [
+        MemCtrl(dram = cls(range = ranges[i]), port = self.membus.mem_side_ports)
+        for i in range(num)
+    ] + [kernel_controller]
+
+  def _createKernelMemoryController(self, cls):
+    return MemCtrl(dram = cls(range = self.mem_ranges[0]), port = self.membus.mem_side_ports)
+
+  def _getInterleaveRanges(self, rng, num, intlv_low_bit, xor_low_bit):
+    from math import log
+    bits = int(log(num, 2))
+    if 2**bits != num:
+        m5.fatal("Non-power of two number of memory controllers")
+
+    intlv_bits = bits
+    ranges = [
+        AddrRange(start=rng.start,
+                  end=rng.end,
+                  intlvHighBit = intlv_low_bit + intlv_bits - 1,
+                  xorHighBit = xor_low_bit + intlv_bits - 1,
+                  intlvBits = intlv_bits,
+                  intlvMatch = i)
+            for i in range(num)
+        ]
+
+    return ranges
 
   def setTestBinary(self, binary_path):
-        """Set up the SE process to execute the binary at binary_path"""
-        from m5 import options
-        self.cpu.workload = Process(
-                          cmd = [binary_path])
-        self.cpu.createThreads()
-
+    """Set up the SE process to execute the binary at binary_path"""
+    from m5 import options
+    self.cpu.workload = Process(
+                      cmd = [binary_path])
+    self.cpu.createThreads()

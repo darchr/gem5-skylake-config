@@ -29,283 +29,290 @@
 
 import m5
 from m5.objects import *
+import math
 
-class IntALU(FUDesc):
+class port0(FUDesc):
     opList = [ OpDesc(opClass='IntAlu', opLat=1),
-               OpDesc(opClass='MemRead', opLat=1),
-               OpDesc(opClass='MemWrite', opLat=1) ]
-    count = 4
-
-class IntMult(FUDesc):
-    opList = [ OpDesc(opClass='IntMult', opLat=4) ]
-    count = 1
-
-class FP_ALU(FUDesc):
-    opList = [ OpDesc(opClass='FloatAdd', opLat=3),
-               OpDesc(opClass='FloatCmp', opLat=3),
-               OpDesc(opClass='FloatCvt', opLat=3) ]
-    count = 3
-
-class FP_Mult(FUDesc):
-    opList = [ OpDesc(opClass='FloatMult', opLat=5),
-               OpDesc(opClass='FloatMultAcc', opLat=5),
-               OpDesc(opClass='FloatMisc', opLat=3) ]
-    count = 3
-
-class DivUnit(FUDesc):
-    # DIV and IDIV instructions in x86 are implemented using a loop which
-    # issues division microops.  The latency of these microops should really be
-    # one (or a small number) cycle each since each of these computes one bit
-    # of the quotient.
-    opList = [ OpDesc(opClass='IntDiv', opLat=1, pipelined=False),
-                # OpDesc(opClass='FloatDiv', opLat=15, pipelined=False),
-                # OpDesc(opClass='FloatSqrt', opLat=15, pipelined=False),
-                OpDesc(opClass='SimdFloatDiv', opLat=15, pipelined=False),
-                OpDesc(opClass='SimdFloatSqrt', opLat=10, pipelined=False) ]
-    count = 1
-
-class SIMD_Unit(FUDesc):
-    opList = [ OpDesc(opClass='SimdAdd', opLat=1),
+               OpDesc(opClass='IntDiv', opLat=1, pipelined=True),
+               OpDesc(opClass='FloatDiv', opLat=12, pipelined=True),
+               OpDesc(opClass='FloatSqrt', opLat=24, pipelined=True),
+               OpDesc(opClass='FloatAdd', opLat=4, pipelined=True),
+               OpDesc(opClass='FloatCmp', opLat=4, pipelined=True),
+               OpDesc(opClass='FloatCvt', opLat=4, pipelined=True),
+               OpDesc(opClass='FloatMult', opLat=4, pipelined=True),
+               OpDesc(opClass='FloatMultAcc', opLat=5, pipelined=True),
+               OpDesc(opClass='SimdAdd', opLat=1),
                OpDesc(opClass='SimdAddAcc', opLat=1),
                OpDesc(opClass='SimdAlu', opLat=1),
                OpDesc(opClass='SimdCmp', opLat=1),
-               OpDesc(opClass='SimdCvt', opLat=3),
-               OpDesc(opClass='SimdMult', opLat=5),
-               OpDesc(opClass='SimdMultAcc', opLat=5),
-               OpDesc(opClass='SimdShift', opLat=2),
-               OpDesc(opClass='SimdShiftAcc', opLat=2),
-               OpDesc(opClass='SimdSqrt', opLat=4),
-               OpDesc(opClass='SimdFloatAdd', opLat=4),
-               OpDesc(opClass='SimdFloatAlu', opLat=4),
-               OpDesc(opClass='SimdFloatCmp', opLat=4),
-               OpDesc(opClass='SimdFloatCvt', opLat=4),
-                ]
-    count = 2
-
-class SIMD_MUL(FUDesc):
-    opList = [ OpDesc(opClass='SimdFloatMult', opLat=5),
-               OpDesc(opClass='SimdFloatMultAcc', opLat=5) ]
-    count = 2
-
-class SIMD_Misc(FUDesc):
-    opList = [ OpDesc(opClass='SimdMisc', opLat=3),
-               OpDesc(opClass='SimdFloatMisc', opLat=3), ]
+               OpDesc(opClass='SimdShift', opLat=1),
+               OpDesc(opClass='SimdShiftAcc', opLat=1),
+               OpDesc(opClass='SimdReduceAdd', opLat=1),
+               OpDesc(opClass='SimdReduceAlu', opLat=1),
+               OpDesc(opClass='SimdReduceCmp', opLat=1),
+               OpDesc(opClass='SimdCvt', opLat=3, pipelined=True),
+               OpDesc(opClass='SimdMisc'),
+               OpDesc(opClass='SimdMult', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdMultAcc', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatAdd', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatAlu', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatCmp', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatReduceAdd', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatReduceCmp', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatCvt', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatMult', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatMultAcc', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatDiv', opLat=12, pipelined=True),
+               OpDesc(opClass='SimdFloatSqrt', opLat=20, pipelined=True)
+               ]
     count = 1
 
-class FPMem(FUDesc):
-    opList = [ OpDesc(opClass='FloatMemRead', opLat=1),
-               OpDesc(opClass='FloatMemWrite', opLat=1) ]
-    count = 2
-
-class IprPort(FUDesc):
-    opList = [ OpDesc(opClass='IprAccess', opLat = 3, pipelined = False) ]
+class port1(FUDesc):
+    opList = [ OpDesc(opClass='IntAlu', opLat=1),
+               OpDesc(opClass='IntMult', opLat=3, pipelined=True),
+               OpDesc(opClass='FloatAdd', opLat=4, pipelined=True),
+               OpDesc(opClass='FloatCmp', opLat=4, pipelined=True),
+               OpDesc(opClass='FloatCvt', opLat=4, pipelined=True),
+               OpDesc(opClass='FloatMult', opLat=4, pipelined=True),
+               OpDesc(opClass='FloatMultAcc', opLat=5, pipelined=True),
+               OpDesc(opClass='SimdAdd', opLat=1),
+               OpDesc(opClass='SimdAddAcc', opLat=1),
+               OpDesc(opClass='SimdAlu', opLat=1),
+               OpDesc(opClass='SimdCmp', opLat=1),
+               OpDesc(opClass='SimdShift', opLat=1),
+               OpDesc(opClass='SimdShiftAcc', opLat=1),
+               OpDesc(opClass='SimdReduceAdd', opLat=1),
+               OpDesc(opClass='SimdReduceAlu', opLat=1),
+               OpDesc(opClass='SimdReduceCmp', opLat=1),
+               OpDesc(opClass='SimdCvt', opLat=3, pipelined=True),
+               OpDesc(opClass='SimdMisc'),
+               OpDesc(opClass='SimdMult', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdMultAcc', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatAdd', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatAlu', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatCmp', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatReduceAdd', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatReduceCmp', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatCvt', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatMult', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatMultAcc', opLat=4, pipelined=True)
+               ]
     count = 1
 
-class Ideal_FUPool(FUPool):
-    FUList = [ IntALU(), IntMult(), DivUnit(), SIMD_Unit(), SIMD_MUL(), SIMD_Misc(), FPMem(), IprPort() ]
+class port2(FUDesc):
+    opList = [ OpDesc(opClass='MemRead', opLat=1, pipelined=True),
+               OpDesc(opClass='FloatMemRead', opLat=1, pipelined=True)
+               ]
+    count = 1
+
+class port3(FUDesc):
+    opList = [ OpDesc(opClass='MemRead', opLat=1, pipelined=True),
+               OpDesc(opClass='FloatMemRead', opLat=1, pipelined=True)
+               ]
+    count = 1
+
+class port4(FUDesc):
+    opList = [ OpDesc(opClass='MemWrite', opLat=1, pipelined=True),
+               OpDesc(opClass='FloatMemWrite', opLat=1, pipelined=True)
+               ]
+    count = 1
+
+class port5(FUDesc):
+    opList = [ OpDesc(opClass='IntAlu', opLat=1),
+               OpDesc(opClass='SimdAdd', opLat=1),
+               OpDesc(opClass='SimdAddAcc', opLat=1),
+               OpDesc(opClass='SimdAlu', opLat=1),
+               OpDesc(opClass='SimdCmp', opLat=1),
+               OpDesc(opClass='SimdShift', opLat=1),
+               OpDesc(opClass='SimdMisc'),
+               OpDesc(opClass='SimdShiftAcc', opLat=1),
+               OpDesc(opClass='SimdReduceAdd', opLat=1),
+               OpDesc(opClass='SimdReduceAlu', opLat=1),
+               OpDesc(opClass='SimdReduceCmp', opLat=1),
+               OpDesc(opClass='SimdFloatAdd', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatAlu', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatCmp', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatReduceAdd', opLat=4, pipelined=True),
+               OpDesc(opClass='SimdFloatReduceCmp', opLat=4, pipelined=True)
+               ]
+    count = 1
+
+class port6(FUDesc):
+    opList = [ OpDesc(opClass='IntAlu', opLat=1),
+               OpDesc(opClass='SimdAdd', opLat=1),
+               OpDesc(opClass='SimdAddAcc', opLat=1),
+               OpDesc(opClass='SimdAlu', opLat=1),
+               OpDesc(opClass='SimdCmp', opLat=1),
+               OpDesc(opClass='SimdShift', opLat=1),
+               OpDesc(opClass='SimdShiftAcc', opLat=1)
+               ]
+    count = 1
+
+class port7(FUDesc):
+    opList = [ OpDesc(opClass='MemWrite', opLat=1, pipelined=True),
+               OpDesc(opClass='FloatMemWrite', opLat=1, pipelined=True)
+               ]
+    count = 1
+
+class ExecUnits(FUPool):
+    FUList = [ port0(), port1(), port2(), port3(), port4(), port5(), port6(), port7() ]
 
 class IndirectPred(SimpleIndirectPredictor):
-    indirectSets = 256 # Cache sets for indirect predictor
-    indirectWays = 2 # Ways for indirect predictor
+    indirectSets = 128 # Cache sets for indirect predictor
+    indirectWays = 4 # Ways for indirect predictor
     indirectTagSize = 16 # Indirect target cache tag bits
-    indirectPathLength = 3 # Previous indirect targets to use for path history
-    indirectGHRBits = 13 # Indirect GHR number of bits
+    indirectPathLength = 7 # Previous indirect targets to use for path history
+    indirectGHRBits = 16 # Indirect GHR number of bits
 
-# If indirect Predictor is disabled use BTB with these params
-btbEntries = 512
-btbTagSize = 19
+class LTAGE_BP(LTAGE_TAGE):
+    nHistoryTables = 12
+    minHist = 4
+    maxHist = 34
+    tagTableTagWidths = [0, 7, 7, 8, 8, 9, 10, 11, 12, 12, 13, 14, 15]
+    logTagTableSizes = [14, 10, 10, 11, 11, 11, 11, 10, 10, 10, 10, 9, 9]
+    logUResetPeriod = 19
 
-class UnCalibCPU(DerivO3CPU):
+class BranchPred(LTAGE):
+    BTBEntries = 512
+    BTBTagSize = 19
+    RASSize = 32
+    indirectBranchPred = IndirectPred() # use NULL to disable
+
+    tage = LTAGE_BP()
+
+depth = 3
+width = 4
+class VerbatimCPU(DerivO3CPU):
     """ Uncalibrated: Configured based on micro-architecture documentation """
-    ######################################
-    # Front End
-    ######################################
-    branchPred = LTAGE()
-    # use NULL to enable BTB
-    branchPred.indirectBranchPred = NULL
 
-    # Pipeline widths
-    fetchWidth = 4
-    decodeWidth = 4
+    branchPred = BranchPred()
 
     # Pipeline delays
-    fetchToDecodeDelay = 2
-    decodeToRenameDelay = 3
-
-    fetchBufferSize = 16
-    fetchQueueSize = 64
-    numIQEntries = 64
-
-    ######################################
-    # Back End
-    ######################################
-
-    fuPool = Ideal_FUPool()
-
-    # Pipeline widths
-    renameWidth = 4
-    dispatchWidth = 4
-    issueWidth = 4
-    wbWidth = 4
-    commitWidth = 4
-    squashWidth = 4
-
-    # Pipeline delays
-    renameToIEWDelay = 4
-    issueToExecuteDelay  = 1
-    iewToRenameDelay = 1
-    iewToCommitDelay = 4
-    commitToFetchDelay = 1
-    commitToIEWDelay = 1
-    commitToRenameDelay = 1
-
-    LQEntries = 72
-    SQEntries = 56
-    numPhysIntRegs = 180
-    numPhysFloatRegs = 168 # Need to change this
-    numROBEntries = 224
-
-
-class CalibCPU(DerivO3CPU):
-    """ Calibrated: configured to match the performance of hardware """
-    ######################################
-    # Front End
-    ######################################
-    branchPred = TournamentBP()
-    branchPred.BTBEntries = btbEntries
-    branchPred.BTBTagSize = btbTagSize
-    # use NULL to enable BTB
-    branchPred.indirectBranchPred = NULL
-
-    # Pipeline widths
-    fetchWidth = 7
-    decodeWidth = 7
-
-    # Pipeline delays
-    fetchToDecodeDelay = 2
-    decodeToRenameDelay = 3
-
-    fetchBufferSize = 16
-    fetchQueueSize = 64
-    numIQEntries = 64
-
-    ######################################
-    # Back End
-    ######################################
-
-    fuPool = Ideal_FUPool()
-    fuPool.FUList[0].count = 7
-    fuPool.FUList[1].opList[0].opLat = 2
-    fuPool.FUList[2].opList[0].opLat = 2
-    fuPool.FUList[4].opList[0].opLat = 4
-    # fuPool.FUList.append(FP_ALU())
-
-    # Pipeline widths
-    renameWidth = 7
-    dispatchWidth = 7
-    issueWidth = 7
-    wbWidth = 7
-    commitWidth = 7
-    squashWidth = 7
-
-    # Pipeline delays
-    renameToIEWDelay = 4
-    issueToExecuteDelay  = 1
-    iewToRenameDelay = 1
-    iewToCommitDelay = 4
-    commitToFetchDelay = 1
-    commitToIEWDelay = 1
-    commitToRenameDelay = 1
-
-    LQEntries = 72
-    SQEntries = 56
-    numPhysIntRegs = 180
-    numPhysFloatRegs = 168 # Need to change this
-    numROBEntries = 224
-
-class MaxCPU(DerivO3CPU):
-    """ Configuration with maximum pipeline widths and mininum delays """
-    ######################################
-    # Front End
-    ######################################
-    branchPred = LTAGE()
-    # use NULL to enable BTB
-    branchPred.indirectBranchPred = NULL
-
-    # Pipeline widths
-    fetchWidth = 32
-    decodeWidth = 32
-
-    # Pipeline delays
-    fetchToDecodeDelay = 1
+    # https://gem5-users.gem5.narkive.com/LNMJQ1M5/model-deeper-pipeline-in-x86#post2
+    # to model 15 stage pipeline choose depth parameter as 3
+    fetchToDecodeDelay = depth
     decodeToRenameDelay = 1
+    renameToIEWDelay = 3*depth
+    iewToCommitDelay = 2* depth
 
-    # fetchBufferSize = 16
-    fetchQueueSize = 256
-    numIQEntries = 128
+    forwardComSize = 19
+    backComSize = 19
 
-    ######################################
-    # Back End
-    ######################################
-
-    fuPool = Ideal_FUPool()
-    fuPool.FUList[0].count = 32
-
-    fuPool.FUList[1].count = 32
-    fuPool.FUList[1].opList[0].opLat = 1
-
-    fuPool.FUList[2].count = 32
-    fuPool.FUList[2].opList[0].opLat = 1
-    fuPool.FUList[2].opList[1].opLat = 1
-    fuPool.FUList[2].opList[2].opLat = 1
-
-    fuPool.FUList[3].count = 32
-    fuPool.FUList[3].opList[0].opLat = 1
-    fuPool.FUList[3].opList[1].opLat = 1
-    fuPool.FUList[3].opList[2].opLat = 1
-    fuPool.FUList[3].opList[3].opLat = 1
-    fuPool.FUList[3].opList[4].opLat = 1
-    fuPool.FUList[3].opList[5].opLat = 1
-    fuPool.FUList[3].opList[6].opLat = 1
-    fuPool.FUList[3].opList[7].opLat = 1
-    fuPool.FUList[3].opList[8].opLat = 1
-    fuPool.FUList[3].opList[9].opLat = 1
-    fuPool.FUList[3].opList[10].opLat = 1
-    fuPool.FUList[3].opList[11].opLat = 1
-    fuPool.FUList[3].opList[12].opLat = 1
-    fuPool.FUList[3].opList[13].opLat = 1
-
-    fuPool.FUList[4].count = 32
-    fuPool.FUList[4].opList[0].opLat = 1
-    fuPool.FUList[4].opList[1].opLat = 1
-
-    fuPool.FUList[5].count = 32
-    fuPool.FUList[5].opList[0].opLat = 1
-    fuPool.FUList[5].opList[1].opLat = 1
-
-    fuPool.FUList[6].count = 32
-    fuPool.FUList[6].opList[0].opLat = 1
-    fuPool.FUList[6].opList[1].opLat = 1
+    fuPool = ExecUnits()
 
     # Pipeline widths
-    renameWidth = 32
-    dispatchWidth = 32
-    issueWidth = 32
-    wbWidth = 32
-    commitWidth = 32
-    squashWidth = 32
+    fetchWidth = width
+    decodeWidth = width
+    renameWidth = 2*width
+    dispatchWidth = 2*width
+    issueWidth = 2*width
+    wbWidth = 2*width
+    commitWidth = 2*width
+    squashWidth = 2*width
+
+    fetchBufferSize = 16
+    fetchQueueSize = 50
+    numROBEntries = 224
+    numIQEntries = 97
+    LQEntries = 72
+    SQEntries = 56
+    numPhysIntRegs = 180
+    numPhysFloatRegs = 168
+
+depth = 3
+width = 4
+class TunedCPU(DerivO3CPU):
+    """ Calibrated: configured to match the performance of hardware """
+
+    branchPred = BranchPred()
 
     # Pipeline delays
-    renameToIEWDelay = 1
-    issueToExecuteDelay  = 1
-    iewToRenameDelay = 1
-    iewToCommitDelay = 1
-    commitToFetchDelay = 1
-    commitToIEWDelay = 1
-    commitToRenameDelay = 1
+    fetchToDecodeDelay = depth
+    decodeToRenameDelay = 1
+    renameToIEWDelay = 3*depth
+    issueToExecuteDelay = 1
+    iewToCommitDelay = 2*depth
 
-    LQEntries = 128
-    SQEntries = 128
-    numPhysIntRegs = 256
+    forwardComSize = 19
+    backComSize = 19
+
+    # Pipeline widths
+    fetchWidth = width * 2
+    decodeWidth = width * 2
+    renameWidth = 3*width
+    issueWidth = 2*width
+    dispatchWidth = 2*width
+    wbWidth = 2*width
+    commitWidth = 2*width
+    squashWidth = 3*width
+
+    fuPool = ExecUnits()
+    # IntDiv()
+    fuPool.FUList[0].opList[1].opLat = 2
+    # IntMult()
+    fuPool.FUList[1].opList[1].opLat = 2
+    # Load
+    fuPool.FUList[2].count = 12
+    # store
+    fuPool.FUList[4].count = 12
+    fuPool.FUList[6].count = 3
+
+    fetchBufferSize = 16
+    fetchQueueSize = 64
+    numROBEntries = 336
+    numIQEntries = 146
+    LQEntries = 72 * 2
+    SQEntries = 56 * 2
+    numPhysIntRegs = 270
+    numPhysFloatRegs = 252
+
+depth = 3
+width = 32
+class UnconstrainedCPU(DerivO3CPU):
+    """ Configuration with maximum pipeline widths and mininum delays """
+
+    branchPred = BranchPred()
+
+    # Pipeline delays
+    fetchToDecodeDelay = depth
+    decodeToRenameDelay = 2
+    renameToIEWDelay = 3*depth
+    issueToExecuteDelay = 1
+    iewToCommitDelay = 2*depth
+
+    forwardComSize = 12
+    backComSize = 12
+
+    # Pipeline widths
+    fetchWidth = width
+    decodeWidth = width
+    renameWidth = width
+    dispatchWidth = width
+    issueWidth = width
+    wbWidth = width
+    commitWidth = width
+    squashWidth = width
+
+    fuPool = ExecUnits()
+    fuPool.FUList[0].count = 4
+    fuPool.FUList[1].count = 4
+    fuPool.FUList[2].count = 4
+    fuPool.FUList[3].count = 4
+    fuPool.FUList[4].count = 4
+    fuPool.FUList[5].count = 4
+    fuPool.FUList[6].count = 4
+    fuPool.FUList[7].count = 4
+    # IntDiv()
+    fuPool.FUList[0].opList[1].opLat = 2
+    # IntMult()
+    fuPool.FUList[1].opList[1].opLat = 2
+
+
+    fetchBufferSize = 64
+    fetchQueueSize = 128
+    numROBEntries = 1024
+    numIQEntries = 512
+    LQEntries = 256
+    SQEntries = 224
+    numPhysIntRegs = 336
     numPhysFloatRegs = 256 # Need to change this
-    numROBEntries = 2096

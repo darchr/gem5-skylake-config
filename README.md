@@ -4,20 +4,24 @@ This repo contains experiments to study performance of gem5 against a real hardw
 
 ## Repo structure
 
-* gem5-configs: contains gem5 configs for skylake micro-architecture.
+* gem5-configs: contains python scripts that configure for skylake micro-architecture in gem5.
   * system/`core.py`: contains the below CPU classes.
     * UnCalibCPU: configured based on the documentation available for the micro-architecture.
-    * CalibCPU: considering the absence of certain features in gem5, for example, gem5 doesn't support micro-op fusion and micro-op cache, this configuration offsets those difficiencies by improving some other parameters.
+    * CalibCPU: considering the absence of certain features in gem5, for example, absence micro-op fusion in gem5, this configuration offsets such deficiencies by improving some other parameters.
     * MaxCPU: models a CPU with maximum pipeline widths, minimum pipeline and instruction latencies.
-  * system/`caches.py`: configuration based on classic cache model.
-  * system/`system.py`: connects core and memory together to form a system.
-  * `run.py`: script to pass parameters to the system.
+  * system/`caches.py`: classic cache model.
+  * system/`MESI_Two_Level.py`: Ruby cache system for MESI protocol.
+  * system/`se.py`: sets a system to run experiments in SE mode.
+  * system/`fs.py`: sets a system to run experiments in FS mode.
+  * `run-se.py`: SE mode run script.
+  * `run-spec-fs.py`: FS mode run script.
 * results: contains the experiment results.
-* `launch_experiment.py`: script to launch the experiments.
+* `launch_microbm_experiment.py`: script to launch the microbenchmark experiments.
+* `launch_spec2006_experiment.py`: script to launch the spec2006 experiments.
 
 ## Running experiments
 
-**Note**: We are using [microbenchmarks](https://github.com/darchr/microbench) for validating the performance and this [tutorial](https://gem5art.readthedocs.io/en/latest/main-doc/intro.html) explains how to setup experiements with gem5art framework.
+**Note**: The following steps describe how to setup and run experiments with microbenchmarks, refer this [tutorial](https://gem5art.readthedocs.io/en/latest/tutorials/spec2006-tutorial.html) for running experiments with spec2006.
 
 ### Step 1 - Clone this repo
 
@@ -38,7 +42,7 @@ scons build/X86/gem5.opt -j8
 
 ```bash
 git clone https://github.com/darchr/microbench.git
-# Checkout adjust-ters branch, this branch contains benchmarks with different iteration to capture complete behaviour of sim-objects in gem5.
+# Checkout adjust-ters branch, this branch contains benchmarks with different iteration to capture complete behavior of sim-objects in gem5.
 cd microbench
 git fetch --all
 git checkout adjust-iters
