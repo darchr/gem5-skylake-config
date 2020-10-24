@@ -125,8 +125,8 @@ class IndirectPred(SimpleIndirectPredictor):
 depth = 3
 width = 4
 class VerbatimCPU(DerivO3CPU):
-    """ Uncalibrated: Configured based on micro-architecture documentation """
-
+    """ VerbatimCPU: Configured based on micro-architecture documentation, 
+                     not tuned to match hardware performance. """
     branchPred = TournamentBP()
     branchPred.BTBEntries = 512
     branchPred.BTBTagSize = 19
@@ -190,8 +190,8 @@ depth = 3
 width = 6
 a_width = width + 2
 class TunedCPU(DerivO3CPU):
-    """ Calibrated: configured to match the performance of hardware """
-
+    """ TunedCPU: Configured based on micro-architecture documentation, 
+                  tuned to match hardware performance. """
     branchPred = TournamentBP()
     branchPred.BTBEntries = 512
     branchPred.BTBTagSize = 19
@@ -241,7 +241,7 @@ class TunedCPU(DerivO3CPU):
     fetchBufferSize = 16
     fetchQueueSize = 50
     numROBEntries = 224 * (a_width/4)
-    numIQEntries = 97
+    numIQEntries = 97 * (a_width/4)
     LQEntries = 72
     SQEntries = 56
     numPhysIntRegs = 180
@@ -250,8 +250,10 @@ class TunedCPU(DerivO3CPU):
 depth = 3
 width = 32
 class UnConstrainedCPU(DerivO3CPU):
-    """ Configuration with maximum pipeline widths and mininum delays """
-
+    """ UnConstrainedCPU: Configured for max performance
+                          32 wide pipeline
+                          3X to 4X more back-end resources than TunedCPU
+                          Minimum instruction latency. """
     branchPred = TournamentBP()
     # use NULL to enable BTB
     # branchPred.indirectBranchPred = NULL
